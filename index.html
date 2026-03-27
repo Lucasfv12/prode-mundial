@@ -612,7 +612,17 @@ function renderAdminResults() {
 }
 
 window.saveResults = async function() {
-  ALL_MATCHES.forEach(m=>{const h=document.getElementById('rh_'+m.id)?.value,a=document.getElementById('ra_'+m.id)?.value;if(h!==''&&a!==''&&h!==undefined)results[m.id]={home:parseInt(h),away:parseInt(a)};});
+  // Reconstruir resultados desde cero: si el campo está vacío, se elimina
+  const newResults = {};
+  ALL_MATCHES.forEach(m=>{
+    const h=document.getElementById('rh_'+m.id)?.value;
+    const a=document.getElementById('ra_'+m.id)?.value;
+    if(h!==''&&a!==''&&h!==undefined&&a!==undefined){
+      newResults[m.id]={home:parseInt(h),away:parseInt(a)};
+    }
+    // Si los campos están vacíos, simplemente no se incluye en newResults → se borra
+  });
+  results = newResults;
   try{await setDoc(doc(db,'config','results'),results);showToast('✅ Resultados guardados','success');}
   catch(e){showToast('Error al guardar resultados','error');}
 }
