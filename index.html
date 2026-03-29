@@ -404,6 +404,27 @@ async function init() {
   } catch(e) { showToast('Error al conectar con Firebase','error'); }
   populateLoginSelect();
   populateTeamSelects();
+
+  // Restaurar sesión si existe
+  const savedSession = localStorage.getItem('prode_session');
+  if (savedSession) {
+    try {
+      const session = JSON.parse(savedSession);
+      if (session.isAdmin) {
+        currentUser = { name: 'Administrador', isAdmin: true };
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        enterApp();
+        return;
+      } else if (session.name && participants[session.name]) {
+        currentUser = { name: session.name, isAdmin: false };
+        try { const snap=await getDoc(doc(db,'pronosticos',session.name)); myPronosticos=snap.exists()?snap.data():{}; } catch(e){myPronosticos={};}
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        enterApp();
+        return;
+      }
+    } catch(e) { localStorage.removeItem('prode_session'); }
+  }
+
   document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
@@ -442,6 +463,7 @@ window.loginParticipant = async function() {
   if (!participants[name]) { err.textContent='Nombre no encontrado.'; err.style.display='block'; return; }
   if (String(participants[name].pin) !== String(pin)) { err.style.display='block'; return; }
   currentUser = {name, isAdmin:false};
+  localStorage.setItem('prode_session', JSON.stringify({name, isAdmin:false}));
   try { const snap=await getDoc(doc(db,'pronosticos',name)); myPronosticos=snap.exists()?snap.data():{}; } catch(e){myPronosticos={};}
   enterApp();
 }
@@ -450,6 +472,7 @@ window.loginAdmin = function() {
   if (document.getElementById('adminPassword').value !== adminPassword) { document.getElementById('adminError').style.display='block'; return; }
   document.getElementById('adminError').style.display='none';
   currentUser = {name:'Administrador', isAdmin:true};
+  localStorage.setItem('prode_session', JSON.stringify({isAdmin:true}));
   enterApp();
 }
 
@@ -474,6 +497,7 @@ function enterApp() {
 
 window.logout = function() {
   currentUser=null; myPronosticos={};
+  localStorage.removeItem('prode_session');
   document.getElementById('screen-app').classList.remove('active');
   document.getElementById('screen-login').classList.add('active');
   document.getElementById('loginPin').value='';
