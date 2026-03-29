@@ -591,6 +591,9 @@ window.savePronosticos = async function() {
   try {
     await setDoc(doc(db,'pronosticos',currentUser.name),myPronosticos);
     st.textContent='✅ Guardado'; st.className='save-status saved';
+    renderMatches();
+    document.getElementById('championPick').value = myPronosticos.champion||'';
+    updateChampionFeedback(); updateProgress();
     showToast('¡Pronósticos guardados!','success');
   } catch(e){st.textContent='❌ Error'; st.className='save-status'; showToast('Error al guardar','error');}
 }
