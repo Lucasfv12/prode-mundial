@@ -120,6 +120,14 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
 .pts-legend span{font-size:.83rem;color:var(--muted2)}
 .pts-legend strong{color:var(--text)}
 .champ-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:8px;padding:4px 10px;font-size:.8rem;color:var(--gold)}
+.name-search-wrap{position:relative;width:100%}
+.name-search-wrap input{width:100%}
+.name-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--gold);border-radius:10px;overflow:hidden;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;max-height:200px;overflow-y:auto}
+.name-dropdown.open{display:block}
+.name-option{padding:11px 16px;cursor:pointer;font-size:.9rem;transition:background .15s;border-bottom:1px solid var(--border)}
+.name-option:last-child{border-bottom:none}
+.name-option:hover,.name-option.highlighted{background:var(--surface2);color:var(--gold)}
+.name-option mark{background:transparent;color:var(--gold);font-weight:700}
 .verify-selector{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .verify-selector label{color:var(--muted2);font-size:.9rem;font-weight:500}
 .verify-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
@@ -165,7 +173,12 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
     <div id="login-participant" class="login-form">
       <div class="form-group">
         <label>Tu nombre</label>
-        <select id="loginName"><option value="">Seleccioná tu nombre</option></select>
+        <div class="name-search-wrap">
+          <input type="text" id="loginNameSearch" placeholder="Escribí tu nombre..." autocomplete="off"
+            oninput="filterNames()" onkeydown="nameKeydown(event)" onfocus="filterNames()">
+          <div class="name-dropdown" id="nameDropdown"></div>
+        </div>
+        <input type="hidden" id="loginName">
       </div>
       <div class="form-group">
         <label>Tu PIN (4 dígitos)</label>
@@ -429,12 +442,64 @@ async function init() {
 }
 
 function populateLoginSelect() {
-  const sel = document.getElementById('loginName');
-  sel.innerHTML = '<option value="">Seleccioná tu nombre</option>';
-  Object.keys(participants).sort().forEach(n => {
-    const o = document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o);
-  });
+  // Search input version — nothing to populate on load, filtering is dynamic
+  document.getElementById('loginName').value = '';
+  document.getElementById('loginNameSearch').value = '';
 }
+
+window.filterNames = function() {
+  const query = document.getElementById('loginNameSearch').value.trim().toLowerCase();
+  const dropdown = document.getElementById('nameDropdown');
+  const names = Object.keys(participants).sort();
+  const matches = query ? names.filter(n => n.toLowerCase().includes(query)) : names;
+
+  if (!matches.length) { dropdown.classList.remove('open'); return; }
+
+  dropdown.innerHTML = matches.map((n, i) => {
+    const highlighted = query ? n.replace(new RegExp(`(${query})`, 'gi'), '<mark>$1</mark>') : n;
+    return `<div class="name-option" data-name="${n}" data-index="${i}" onmousedown="selectName('${n.replace(/'/g,"\\'")}')">👤 ${highlighted}</div>`;
+  }).join('');
+  dropdown.classList.add('open');
+}
+
+window.selectName = function(name) {
+  document.getElementById('loginNameSearch').value = name;
+  document.getElementById('loginName').value = name;
+  document.getElementById('nameDropdown').classList.remove('open');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginPin').focus();
+}
+
+window.nameKeydown = function(e) {
+  const dropdown = document.getElementById('nameDropdown');
+  const options = dropdown.querySelectorAll('.name-option');
+  const current = dropdown.querySelector('.highlighted');
+  let idx = current ? parseInt(current.dataset.index) : -1;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    idx = Math.min(idx + 1, options.length - 1);
+    options.forEach(o => o.classList.remove('highlighted'));
+    if (options[idx]) options[idx].classList.add('highlighted');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    idx = Math.max(idx - 1, 0);
+    options.forEach(o => o.classList.remove('highlighted'));
+    if (options[idx]) options[idx].classList.add('highlighted');
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const sel = dropdown.querySelector('.highlighted') || options[0];
+    if (sel) selectName(sel.dataset.name);
+  } else if (e.key === 'Escape') {
+    dropdown.classList.remove('open');
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('.name-search-wrap')) {
+    document.getElementById('nameDropdown')?.classList.remove('open');
+  }
+});
 
 function populateTeamSelects() {
   ['championPick','realChampion'].forEach(id => {
@@ -459,7 +524,7 @@ window.loginParticipant = async function() {
   const pin = document.getElementById('loginPin').value;
   const err = document.getElementById('loginError');
   err.style.display='none';
-  if (!name) { err.textContent='Seleccioná tu nombre.'; err.style.display='block'; return; }
+  if (!name) { err.textContent='Escribí y seleccioná tu nombre de la lista.'; err.style.display='block'; return; }
   if (!participants[name]) { err.textContent='Nombre no encontrado.'; err.style.display='block'; return; }
   if (String(participants[name].pin) !== String(pin)) { err.style.display='block'; return; }
   currentUser = {name, isAdmin:false};
@@ -501,6 +566,8 @@ window.logout = function() {
   document.getElementById('screen-app').classList.remove('active');
   document.getElementById('screen-login').classList.add('active');
   document.getElementById('loginPin').value='';
+  document.getElementById('loginNameSearch').value='';
+  document.getElementById('loginName').value='';
   document.getElementById('adminPassword').value='';
   document.getElementById('saveBar').style.display='none';
   document.getElementById('navAdmin').style.display='none';
