@@ -665,17 +665,29 @@ window.showTab = function(name, btn) {
 
 function renderMatches() {
   let html='';
-  ['grupos','r32','r16','qf','sf','3ero','final'].forEach(round => {
-    const ms = ALL_MATCHES.filter(m=>m.round===round);
-    html+=`<div class="round-header">${ROUND_NAMES[round]}</div>`;
-    if(round==='grupos') {
-      [...new Set(ms.map(m=>m.group))].forEach(g=>{
-        html+=`<div class="group-label">Grupo ${g}</div><div class="match-grid">`;
-        ms.filter(m=>m.group===g).forEach(m=>html+=mHTML(m));
-        html+='</div>';
-      });
-    } else { html+='<div class="match-grid">'; ms.forEach(m=>html+=mHTML(m)); html+='</div>'; }
+  const groupMatches = ALL_MATCHES.filter(m=>m.round==='grupos');
+  const knockoutRounds = ['r32','r16','qf','sf','3ero','final'];
+
+  // FASE DE GRUPOS: agrupar por fecha
+  html+=`<div class="round-header">${ROUND_NAMES['grupos']}</div>`;
+  const dates = [...new Set(groupMatches.map(m=>m.date))];
+  dates.forEach(date => {
+    const ms = groupMatches.filter(m=>m.date===date);
+    html+=`<div class="group-label">📅 ${date}</div><div class="match-grid">`;
+    ms.forEach(m=>html+=mHTML(m));
+    html+='</div>';
   });
+
+  // RONDAS ELIMINATORIAS: agrupar por ronda como antes
+  knockoutRounds.forEach(round => {
+    const ms = ALL_MATCHES.filter(m=>m.round===round);
+    if(!ms.length) return;
+    html+=`<div class="round-header">${ROUND_NAMES[round]}</div>`;
+    html+='<div class="match-grid">';
+    ms.forEach(m=>html+=mHTML(m));
+    html+='</div>';
+  });
+
   document.getElementById('matchesContainer').innerHTML=html;
 }
 
