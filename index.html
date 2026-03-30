@@ -322,83 +322,144 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-const TEAMS = ["Argentina","Francia","Brasil","Inglaterra","Alemania","España","Portugal","Países Bajos","Bélgica","Uruguay","Croacia","Dinamarca","México","Senegal","Marruecos","Japón","Colombia","Suiza","Ecuador","Ghana","Camerún","Corea del Sur","Serbia","Polonia","Australia","Túnez","Canadá","Nigeria","Irán","Arabia Saudita","Estados Unidos","Otros"];
+const TEAMS = ["Argentina","Alemania","Arabia Saudí","Australia","Austria","Bélgica","Bolivia/Irak/Surinam*","Bosnia/Italia/Gales*","Brasil","Canadá","Cabo Verde","Catar","Colombia","Corea del Sur","Costa de Marfil","Croacia","Curazao","Ecuador","Egipto","Escocia","España","Estados Unidos","Francia","Ghana","Haití","Inglaterra","Irán","Jamaica/Congo/N.Caledonia*","Japón","Jordania","Marruecos","México","Noruega","Nueva Zelanda","Países Bajos","Panamá","Paraguay","Portugal","Rep. Checa/Dinamarca*","Senegal","Sudáfrica","Suiza","Túnez","Turquía/Rumania*","Ucrania/Polonia/Albania*","Uruguay","Uzbekistán","Otros"];
 
 const GROUP_MATCHES = [
-  {id:"g1",round:"grupos",group:"A",home:"Argentina",away:"Canadá",date:"Jun 12"},
-  {id:"g2",round:"grupos",group:"A",home:"Marruecos",away:"Portugal",date:"Jun 12"},
-  {id:"g3",round:"grupos",group:"A",home:"Argentina",away:"Marruecos",date:"Jun 16"},
-  {id:"g4",round:"grupos",group:"A",home:"Portugal",away:"Canadá",date:"Jun 16"},
-  {id:"g5",round:"grupos",group:"A",home:"Argentina",away:"Portugal",date:"Jun 20"},
-  {id:"g6",round:"grupos",group:"A",home:"Canadá",away:"Marruecos",date:"Jun 20"},
-  {id:"g7",round:"grupos",group:"B",home:"España",away:"Australia",date:"Jun 13"},
-  {id:"g8",round:"grupos",group:"B",home:"Nigeria",away:"Ecuador",date:"Jun 13"},
-  {id:"g9",round:"grupos",group:"B",home:"España",away:"Nigeria",date:"Jun 17"},
-  {id:"g10",round:"grupos",group:"B",home:"Australia",away:"Ecuador",date:"Jun 17"},
-  {id:"g11",round:"grupos",group:"B",home:"España",away:"Ecuador",date:"Jun 21"},
-  {id:"g12",round:"grupos",group:"B",home:"Australia",away:"Nigeria",date:"Jun 21"},
-  {id:"g13",round:"grupos",group:"C",home:"Francia",away:"México",date:"Jun 13"},
-  {id:"g14",round:"grupos",group:"C",home:"Bélgica",away:"Arabia Saudita",date:"Jun 13"},
-  {id:"g15",round:"grupos",group:"C",home:"Francia",away:"Bélgica",date:"Jun 17"},
-  {id:"g16",round:"grupos",group:"C",home:"México",away:"Arabia Saudita",date:"Jun 17"},
-  {id:"g17",round:"grupos",group:"C",home:"Francia",away:"Arabia Saudita",date:"Jun 21"},
-  {id:"g18",round:"grupos",group:"C",home:"Bélgica",away:"México",date:"Jun 21"},
-  {id:"g19",round:"grupos",group:"D",home:"Brasil",away:"Alemania",date:"Jun 14"},
-  {id:"g20",round:"grupos",group:"D",home:"Japón",away:"Colombia",date:"Jun 14"},
-  {id:"g21",round:"grupos",group:"D",home:"Brasil",away:"Japón",date:"Jun 18"},
-  {id:"g22",round:"grupos",group:"D",home:"Alemania",away:"Colombia",date:"Jun 18"},
-  {id:"g23",round:"grupos",group:"D",home:"Brasil",away:"Colombia",date:"Jun 22"},
-  {id:"g24",round:"grupos",group:"D",home:"Alemania",away:"Japón",date:"Jun 22"},
-  {id:"g25",round:"grupos",group:"E",home:"Inglaterra",away:"Países Bajos",date:"Jun 14"},
-  {id:"g26",round:"grupos",group:"E",home:"Senegal",away:"Uruguay",date:"Jun 14"},
-  {id:"g27",round:"grupos",group:"E",home:"Inglaterra",away:"Senegal",date:"Jun 18"},
-  {id:"g28",round:"grupos",group:"E",home:"Países Bajos",away:"Uruguay",date:"Jun 18"},
-  {id:"g29",round:"grupos",group:"E",home:"Inglaterra",away:"Uruguay",date:"Jun 22"},
-  {id:"g30",round:"grupos",group:"E",home:"Países Bajos",away:"Senegal",date:"Jun 22"},
-  {id:"g31",round:"grupos",group:"F",home:"Suiza",away:"Camerún",date:"Jun 15"},
-  {id:"g32",round:"grupos",group:"F",home:"Serbia",away:"Polonia",date:"Jun 15"},
-  {id:"g33",round:"grupos",group:"F",home:"Suiza",away:"Serbia",date:"Jun 19"},
-  {id:"g34",round:"grupos",group:"F",home:"Camerún",away:"Polonia",date:"Jun 19"},
-  {id:"g35",round:"grupos",group:"F",home:"Suiza",away:"Polonia",date:"Jun 23"},
-  {id:"g36",round:"grupos",group:"F",home:"Camerún",away:"Serbia",date:"Jun 23"},
-  {id:"g37",round:"grupos",group:"G",home:"Croacia",away:"Túnez",date:"Jun 15"},
-  {id:"g38",round:"grupos",group:"G",home:"Dinamarca",away:"Corea del Sur",date:"Jun 15"},
-  {id:"g39",round:"grupos",group:"G",home:"Croacia",away:"Dinamarca",date:"Jun 19"},
-  {id:"g40",round:"grupos",group:"G",home:"Túnez",away:"Corea del Sur",date:"Jun 19"},
-  {id:"g41",round:"grupos",group:"G",home:"Croacia",away:"Corea del Sur",date:"Jun 23"},
-  {id:"g42",round:"grupos",group:"G",home:"Dinamarca",away:"Túnez",date:"Jun 23"},
-  {id:"g43",round:"grupos",group:"H",home:"México",away:"Ghana",date:"Jun 16"},
-  {id:"g44",round:"grupos",group:"H",home:"Irán",away:"Australia",date:"Jun 16"},
-  {id:"g45",round:"grupos",group:"H",home:"México",away:"Irán",date:"Jun 20"},
-  {id:"g46",round:"grupos",group:"H",home:"Ghana",away:"Australia",date:"Jun 20"},
-  {id:"g47",round:"grupos",group:"H",home:"México",away:"Australia",date:"Jun 24"},
-  {id:"g48",round:"grupos",group:"H",home:"Ghana",away:"Irán",date:"Jun 24"},
+  // Grupo A: México, Sudáfrica, Corea del Sur, Dinamarca/Macedonia/R.Checa/Irlanda
+  {id:"g1",round:"grupos",group:"A",home:"México",away:"Sudáfrica",date:"Jun 11"},
+  {id:"g2",round:"grupos",group:"A",home:"Corea del Sur",away:"Rep. Checa/Dinamarca*",date:"Jun 11"},
+  {id:"g3",round:"grupos",group:"A",home:"Rep. Checa/Dinamarca*",away:"Sudáfrica",date:"Jun 18"},
+  {id:"g4",round:"grupos",group:"A",home:"México",away:"Corea del Sur",date:"Jun 18"},
+  {id:"g5",round:"grupos",group:"A",home:"Rep. Checa/Dinamarca*",away:"México",date:"Jun 24"},
+  {id:"g6",round:"grupos",group:"A",home:"Sudáfrica",away:"Corea del Sur",date:"Jun 24"},
+  // Grupo B: Canadá, Bosnia/Italia/Irlanda Norte/Gales, Catar, Suiza
+  {id:"g7",round:"grupos",group:"B",home:"Canadá",away:"Italia/Bosnia/Gales*",date:"Jun 12"},
+  {id:"g8",round:"grupos",group:"B",home:"Catar",away:"Suiza",date:"Jun 13"},
+  {id:"g9",round:"grupos",group:"B",home:"Suiza",away:"Italia/Bosnia/Gales*",date:"Jun 18"},
+  {id:"g10",round:"grupos",group:"B",home:"Canadá",away:"Catar",date:"Jun 18"},
+  {id:"g11",round:"grupos",group:"B",home:"Suiza",away:"Canadá",date:"Jun 24"},
+  {id:"g12",round:"grupos",group:"B",home:"Italia/Bosnia/Gales*",away:"Catar",date:"Jun 24"},
+  // Grupo C: Brasil, Marruecos, Haití, Escocia
+  {id:"g13",round:"grupos",group:"C",home:"Brasil",away:"Marruecos",date:"Jun 13"},
+  {id:"g14",round:"grupos",group:"C",home:"Haití",away:"Escocia",date:"Jun 13"},
+  {id:"g15",round:"grupos",group:"C",home:"Escocia",away:"Marruecos",date:"Jun 19"},
+  {id:"g16",round:"grupos",group:"C",home:"Brasil",away:"Haití",date:"Jun 19"},
+  {id:"g17",round:"grupos",group:"C",home:"Brasil",away:"Escocia",date:"Jun 24"},
+  {id:"g18",round:"grupos",group:"C",home:"Marruecos",away:"Haití",date:"Jun 24"},
+  // Grupo D: Estados Unidos, Paraguay, Australia, Kosovo/Rumania/Eslovaquia/Turquía
+  {id:"g19",round:"grupos",group:"D",home:"Estados Unidos",away:"Paraguay",date:"Jun 12"},
+  {id:"g20",round:"grupos",group:"D",home:"Australia",away:"Turquía/Rumania*",date:"Jun 13"},
+  {id:"g21",round:"grupos",group:"D",home:"Estados Unidos",away:"Australia",date:"Jun 19"},
+  {id:"g22",round:"grupos",group:"D",home:"Turquía/Rumania*",away:"Paraguay",date:"Jun 19"},
+  {id:"g23",round:"grupos",group:"D",home:"Turquía/Rumania*",away:"Estados Unidos",date:"Jun 25"},
+  {id:"g24",round:"grupos",group:"D",home:"Paraguay",away:"Australia",date:"Jun 25"},
+  // Grupo E: Alemania, Curazao, Costa de Marfil, Ecuador
+  {id:"g25",round:"grupos",group:"E",home:"Alemania",away:"Curazao",date:"Jun 14"},
+  {id:"g26",round:"grupos",group:"E",home:"Costa de Marfil",away:"Ecuador",date:"Jun 14"},
+  {id:"g27",round:"grupos",group:"E",home:"Alemania",away:"Costa de Marfil",date:"Jun 20"},
+  {id:"g28",round:"grupos",group:"E",home:"Ecuador",away:"Curazao",date:"Jun 20"},
+  {id:"g29",round:"grupos",group:"E",home:"Curazao",away:"Costa de Marfil",date:"Jun 25"},
+  {id:"g30",round:"grupos",group:"E",home:"Ecuador",away:"Alemania",date:"Jun 25"},
+  // Grupo F: Países Bajos, Japón, Albania/Polonia/Suecia/Ucrania, Túnez
+  {id:"g31",round:"grupos",group:"F",home:"Países Bajos",away:"Japón",date:"Jun 14"},
+  {id:"g32",round:"grupos",group:"F",home:"Ucrania/Polonia/Albania*",away:"Túnez",date:"Jun 14"},
+  {id:"g33",round:"grupos",group:"F",home:"Países Bajos",away:"Ucrania/Polonia/Albania*",date:"Jun 20"},
+  {id:"g34",round:"grupos",group:"F",home:"Túnez",away:"Japón",date:"Jun 20"},
+  {id:"g35",round:"grupos",group:"F",home:"Japón",away:"Ucrania/Polonia/Albania*",date:"Jun 25"},
+  {id:"g36",round:"grupos",group:"F",home:"Túnez",away:"Países Bajos",date:"Jun 25"},
+  // Grupo G: Bélgica, Egipto, Irán, Nueva Zelanda
+  {id:"g37",round:"grupos",group:"G",home:"Bélgica",away:"Egipto",date:"Jun 15"},
+  {id:"g38",round:"grupos",group:"G",home:"Irán",away:"Nueva Zelanda",date:"Jun 15"},
+  {id:"g39",round:"grupos",group:"G",home:"Bélgica",away:"Irán",date:"Jun 21"},
+  {id:"g40",round:"grupos",group:"G",home:"Nueva Zelanda",away:"Egipto",date:"Jun 21"},
+  {id:"g41",round:"grupos",group:"G",home:"Egipto",away:"Irán",date:"Jun 26"},
+  {id:"g42",round:"grupos",group:"G",home:"Nueva Zelanda",away:"Bélgica",date:"Jun 26"},
+  // Grupo H: España, Cabo Verde, Arabia Saudí, Uruguay
+  {id:"g43",round:"grupos",group:"H",home:"España",away:"Cabo Verde",date:"Jun 15"},
+  {id:"g44",round:"grupos",group:"H",home:"Arabia Saudí",away:"Uruguay",date:"Jun 15"},
+  {id:"g45",round:"grupos",group:"H",home:"España",away:"Arabia Saudí",date:"Jun 21"},
+  {id:"g46",round:"grupos",group:"H",home:"Uruguay",away:"Cabo Verde",date:"Jun 21"},
+  {id:"g47",round:"grupos",group:"H",home:"Cabo Verde",away:"Arabia Saudí",date:"Jun 26"},
+  {id:"g48",round:"grupos",group:"H",home:"Uruguay",away:"España",date:"Jun 26"},
+  // Grupo I: Francia, Senegal, Irak/Bolivia/Surinam, Noruega
+  {id:"g49",round:"grupos",group:"I",home:"Francia",away:"Senegal",date:"Jun 16"},
+  {id:"g50",round:"grupos",group:"I",home:"Irak/Bolivia/Surinam*",away:"Noruega",date:"Jun 16"},
+  {id:"g51",round:"grupos",group:"I",home:"Francia",away:"Irak/Bolivia/Surinam*",date:"Jun 22"},
+  {id:"g52",round:"grupos",group:"I",home:"Noruega",away:"Senegal",date:"Jun 22"},
+  {id:"g53",round:"grupos",group:"I",home:"Noruega",away:"Francia",date:"Jun 26"},
+  {id:"g54",round:"grupos",group:"I",home:"Senegal",away:"Irak/Bolivia/Surinam*",date:"Jun 26"},
+  // Grupo J: Argentina, Argelia, Austria, Jordania
+  {id:"g55",round:"grupos",group:"J",home:"Argentina",away:"Argelia",date:"Jun 16"},
+  {id:"g56",round:"grupos",group:"J",home:"Austria",away:"Jordania",date:"Jun 16"},
+  {id:"g57",round:"grupos",group:"J",home:"Argentina",away:"Austria",date:"Jun 22"},
+  {id:"g58",round:"grupos",group:"J",home:"Jordania",away:"Argelia",date:"Jun 22"},
+  {id:"g59",round:"grupos",group:"J",home:"Argelia",away:"Austria",date:"Jun 27"},
+  {id:"g60",round:"grupos",group:"J",home:"Jordania",away:"Argentina",date:"Jun 27"},
+  // Grupo K: Portugal, Jamaica/RD Congo/N.Caledonia, Uzbekistán, Colombia
+  {id:"g61",round:"grupos",group:"K",home:"Portugal",away:"Jamaica/Congo/N.Caledonia*",date:"Jun 17"},
+  {id:"g62",round:"grupos",group:"K",home:"Uzbekistán",away:"Colombia",date:"Jun 17"},
+  {id:"g63",round:"grupos",group:"K",home:"Portugal",away:"Uzbekistán",date:"Jun 23"},
+  {id:"g64",round:"grupos",group:"K",home:"Colombia",away:"Jamaica/Congo/N.Caledonia*",date:"Jun 23"},
+  {id:"g65",round:"grupos",group:"K",home:"Colombia",away:"Portugal",date:"Jun 27"},
+  {id:"g66",round:"grupos",group:"K",home:"Jamaica/Congo/N.Caledonia*",away:"Uzbekistán",date:"Jun 27"},
+  // Grupo L: Inglaterra, Croacia, Ghana, Panamá
+  {id:"g67",round:"grupos",group:"L",home:"Inglaterra",away:"Croacia",date:"Jun 17"},
+  {id:"g68",round:"grupos",group:"L",home:"Ghana",away:"Panamá",date:"Jun 17"},
+  {id:"g69",round:"grupos",group:"L",home:"Inglaterra",away:"Ghana",date:"Jun 23"},
+  {id:"g70",round:"grupos",group:"L",home:"Panamá",away:"Croacia",date:"Jun 23"},
+  {id:"g71",round:"grupos",group:"L",home:"Panamá",away:"Inglaterra",date:"Jun 27"},
+  {id:"g72",round:"grupos",group:"L",home:"Croacia",away:"Ghana",date:"Jun 27"},
 ];
 
 const KNOCKOUT_MATCHES = [
-  {id:"r16_1",round:"r16",label:"Octavos 1",home:"1° Grupo A",away:"2° Grupo B",date:"Jul 1"},
-  {id:"r16_2",round:"r16",label:"Octavos 2",home:"1° Grupo C",away:"2° Grupo D",date:"Jul 1"},
-  {id:"r16_3",round:"r16",label:"Octavos 3",home:"1° Grupo E",away:"2° Grupo F",date:"Jul 2"},
-  {id:"r16_4",round:"r16",label:"Octavos 4",home:"1° Grupo B",away:"2° Grupo A",date:"Jul 2"},
-  {id:"r16_5",round:"r16",label:"Octavos 5",home:"1° Grupo D",away:"2° Grupo C",date:"Jul 3"},
-  {id:"r16_6",round:"r16",label:"Octavos 6",home:"1° Grupo F",away:"2° Grupo E",date:"Jul 3"},
-  {id:"r16_7",round:"r16",label:"Octavos 7",home:"1° Grupo G",away:"2° Grupo H",date:"Jul 4"},
-  {id:"r16_8",round:"r16",label:"Octavos 8",home:"1° Grupo H",away:"2° Grupo G",date:"Jul 4"},
-  {id:"qf_1",round:"qf",label:"Cuartos 1",home:"G1 Oct.1",away:"G1 Oct.2",date:"Jul 8"},
-  {id:"qf_2",round:"qf",label:"Cuartos 2",home:"G1 Oct.3",away:"G1 Oct.4",date:"Jul 8"},
-  {id:"qf_3",round:"qf",label:"Cuartos 3",home:"G1 Oct.5",away:"G1 Oct.6",date:"Jul 9"},
-  {id:"qf_4",round:"qf",label:"Cuartos 4",home:"G1 Oct.7",away:"G1 Oct.8",date:"Jul 9"},
-  {id:"sf_1",round:"sf",label:"Semifinal 1",home:"G1 Ctos.1",away:"G1 Ctos.2",date:"Jul 14"},
-  {id:"sf_2",round:"sf",label:"Semifinal 2",home:"G1 Ctos.3",away:"G1 Ctos.4",date:"Jul 15"},
-  {id:"final_1",round:"final",label:"GRAN FINAL",home:"G1 Semi 1",away:"G1 Semi 2",date:"Jul 19"},
+  // 16avos de final — 16 partidos (32 clasificados)
+  {id:"r32_1",round:"r32",home:"1° Grupo A",away:"2° Grupo B",date:"Jun 29"},
+  {id:"r32_2",round:"r32",home:"1° Grupo C",away:"2° Grupo D",date:"Jun 29"},
+  {id:"r32_3",round:"r32",home:"1° Grupo E",away:"2° Grupo F",date:"Jun 30"},
+  {id:"r32_4",round:"r32",home:"1° Grupo G",away:"2° Grupo H",date:"Jun 30"},
+  {id:"r32_5",round:"r32",home:"1° Grupo I",away:"2° Grupo J",date:"Jul 1"},
+  {id:"r32_6",round:"r32",home:"1° Grupo K",away:"2° Grupo L",date:"Jul 1"},
+  {id:"r32_7",round:"r32",home:"1° Grupo B",away:"2° Grupo A",date:"Jul 2"},
+  {id:"r32_8",round:"r32",home:"1° Grupo D",away:"2° Grupo C",date:"Jul 2"},
+  {id:"r32_9",round:"r32",home:"1° Grupo F",away:"2° Grupo E",date:"Jul 3"},
+  {id:"r32_10",round:"r32",home:"1° Grupo H",away:"2° Grupo G",date:"Jul 3"},
+  {id:"r32_11",round:"r32",home:"1° Grupo J",away:"2° Grupo I",date:"Jul 4"},
+  {id:"r32_12",round:"r32",home:"1° Grupo L",away:"2° Grupo K",date:"Jul 4"},
+  {id:"r32_13",round:"r32",home:"3° Mejor 1",away:"3° Mejor 2",date:"Jul 5"},
+  {id:"r32_14",round:"r32",home:"3° Mejor 3",away:"3° Mejor 4",date:"Jul 5"},
+  {id:"r32_15",round:"r32",home:"3° Mejor 5",away:"3° Mejor 6",date:"Jul 6"},
+  {id:"r32_16",round:"r32",home:"3° Mejor 7",away:"3° Mejor 8",date:"Jul 6"},
+  // Octavos de final — 8 partidos
+  {id:"r16_1",round:"r16",home:"G1 16avos-1",away:"G1 16avos-2",date:"Jul 9"},
+  {id:"r16_2",round:"r16",home:"G1 16avos-3",away:"G1 16avos-4",date:"Jul 9"},
+  {id:"r16_3",round:"r16",home:"G1 16avos-5",away:"G1 16avos-6",date:"Jul 10"},
+  {id:"r16_4",round:"r16",home:"G1 16avos-7",away:"G1 16avos-8",date:"Jul 10"},
+  {id:"r16_5",round:"r16",home:"G1 16avos-9",away:"G1 16avos-10",date:"Jul 11"},
+  {id:"r16_6",round:"r16",home:"G1 16avos-11",away:"G1 16avos-12",date:"Jul 11"},
+  {id:"r16_7",round:"r16",home:"G1 16avos-13",away:"G1 16avos-14",date:"Jul 12"},
+  {id:"r16_8",round:"r16",home:"G1 16avos-15",away:"G1 16avos-16",date:"Jul 12"},
+  // Cuartos de final — 4 partidos
+  {id:"qf_1",round:"qf",home:"G1 Oct-1",away:"G1 Oct-2",date:"Jul 16"},
+  {id:"qf_2",round:"qf",home:"G1 Oct-3",away:"G1 Oct-4",date:"Jul 16"},
+  {id:"qf_3",round:"qf",home:"G1 Oct-5",away:"G1 Oct-6",date:"Jul 17"},
+  {id:"qf_4",round:"qf",home:"G1 Oct-7",away:"G1 Oct-8",date:"Jul 17"},
+  // Semifinales — 2 partidos
+  {id:"sf_1",round:"sf",home:"G1 Ctos-1",away:"G1 Ctos-2",date:"Jul 21"},
+  {id:"sf_2",round:"sf",home:"G1 Ctos-3",away:"G1 Ctos-4",date:"Jul 22"},
+  // 3er puesto
+  {id:"3ero",round:"3ero",home:"Perdedor SF-1",away:"Perdedor SF-2",date:"Jul 25"},
+  // Final
+  {id:"final_1",round:"final",home:"G1 Semi-1",away:"G1 Semi-2",date:"Jul 26"},
 ];
 
 const ALL_MATCHES = [...GROUP_MATCHES, ...KNOCKOUT_MATCHES];
-const ROUND_NAMES = {grupos:"Fase de Grupos",r16:"Octavos de Final",qf:"Cuartos de Final",sf:"Semifinales",final:"Final"};
+const ROUND_NAMES = {grupos:"Fase de Grupos",r32:"16avos de Final",r16:"Octavos de Final",qf:"Cuartos de Final",sf:"Semifinales","3ero":"Tercer Puesto 🥉",final:"Final 🏆"};
+const KNOCKOUT_ROUNDS = ['r32','r16','qf','sf','3ero','final'];
 
 let currentUser = null;
 let participants = {};
 let results = {};
+let matchNames = {}; // { matchId: {home, away} } — editable by admin for knockout
 let myPronosticos = {};
 let realChampion = '';
 let adminPassword = 'admin2026';
@@ -414,6 +475,8 @@ async function init() {
     }
     const resSnap = await getDoc(doc(db,'config','results'));
     if (resSnap.exists()) results = resSnap.data();
+    const namesSnap = await getDoc(doc(db,'config','matchNames'));
+    if (namesSnap.exists()) matchNames = namesSnap.data();
   } catch(e) { showToast('Error al conectar con Firebase','error'); }
   populateLoginSelect();
   populateTeamSelects();
@@ -586,7 +649,7 @@ window.showTab = function(name, btn) {
 
 function renderMatches() {
   let html='';
-  ['grupos','r16','qf','sf','final'].forEach(round => {
+  ['grupos','r32','r16','qf','sf','3ero','final'].forEach(round => {
     const ms = ALL_MATCHES.filter(m=>m.round===round);
     html+=`<div class="round-header">${ROUND_NAMES[round]}</div>`;
     if(round==='grupos') {
@@ -601,6 +664,7 @@ function renderMatches() {
 }
 
 function mHTML(m) {
+  const teams = getMatchTeams(m);
   const p=myPronosticos[m.id]||{}, r=results[m.id];
   const locked=r&&r.home!==undefined&&r.home!=='';
   const hV=p.home!==undefined?p.home:'', aV=p.away!==undefined?p.away:'';
@@ -613,8 +677,8 @@ function mHTML(m) {
     else fb=`<div class="match-feedback fb-wrong">❌ No acertaste</div>`;
   } else if(hV!==''&&aV!=='') fb=`<div class="match-feedback fb-pending">💾 Guardado</div>`;
   return `<div class="match-card${locked?' locked':''}">
-    <div class="match-meta"><span>${m.group?'Grupo '+m.group:(m.label||'')}</span><span>${m.date}${locked?' <span class="lock-pill">🔒</span>':''}</span></div>
-    <div class="match-teams"><div class="team-name home">${m.home||''}</div><div class="match-vs">VS</div><div class="team-name">${m.away||''}</div></div>
+    <div class="match-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}${locked?' <span class="lock-pill">🔒</span>':''}</span></div>
+    <div class="match-teams"><div class="team-name home">${teams.home}</div><div class="match-vs">VS</div><div class="team-name">${teams.away}</div></div>
     ${locked&&r?`<div class="real-result">${r.home} — ${r.away}<small>resultado real</small></div>`:''}
     <div class="score-row">
       <input type="number" min="0" max="20" value="${hV}" ${dis} id="h_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')">
@@ -730,21 +794,55 @@ window.saveAdminPassword = async function() {
   showToast('✅ Contraseña actualizada','success');
 }
 
+function getMatchTeams(m) {
+  const custom = matchNames[m.id];
+  return {
+    home: (custom && custom.home) ? custom.home : m.home,
+    away: (custom && custom.away) ? custom.away : m.away,
+  };
+}
+
 function renderAdminResults() {
   let html='';
-  ['grupos','r16','qf','sf','final'].forEach(round=>{
+  ['grupos','r32','r16','qf','sf','3ero','final'].forEach(round=>{
     const ms=ALL_MATCHES.filter(m=>m.round===round);
+    const isKnockout = KNOCKOUT_ROUNDS.includes(round);
     html+=`<div class="round-header">${ROUND_NAMES[round]}</div>`;
+    if (isKnockout) {
+      html+=`<p style="font-size:.78rem;color:var(--muted2);margin-bottom:10px">✏️ Podés editar los nombres de los equipos cuando se definan los cruces.</p>`;
+    }
     ms.forEach(m=>{
       const r=results[m.id]||{};
-      html+=`<div class="result-item"><div class="result-label">${m.home||''} vs ${m.away||''}<small>${m.date}${m.group?' · Grupo '+m.group:''}</small></div><div class="result-inputs"><input type="number" min="0" max="20" id="rh_${m.id}" value="${r.home!==undefined?r.home:''}" placeholder="?"><span style="color:var(--muted);font-weight:700;padding:0 4px">—</span><input type="number" min="0" max="20" id="ra_${m.id}" value="${r.away!==undefined?r.away:''}" placeholder="?"></div></div>`;
+      const teams = getMatchTeams(m);
+      if (isKnockout) {
+        const cn = matchNames[m.id]||{};
+        html+=`<div class="result-item" style="flex-wrap:wrap;gap:8px">
+          <div class="result-label" style="min-width:100%;margin-bottom:4px">
+            <small>${m.date}</small>
+            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+              <input type="text" id="nh_${m.id}" value="${cn.home||''}" placeholder="${m.home}" style="flex:1;min-width:120px;font-size:.85rem;padding:7px 10px">
+              <span style="color:var(--muted);font-weight:700;align-self:center">vs</span>
+              <input type="text" id="na_${m.id}" value="${cn.away||''}" placeholder="${m.away}" style="flex:1;min-width:120px;font-size:.85rem;padding:7px 10px">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+            <span style="font-size:.8rem;color:var(--muted2)">Resultado:</span>
+            <div class="result-inputs">
+              <input type="number" min="0" max="20" id="rh_${m.id}" value="${r.home!==undefined?r.home:''}" placeholder="?">
+              <span style="color:var(--muted);font-weight:700;padding:0 4px">—</span>
+              <input type="number" min="0" max="20" id="ra_${m.id}" value="${r.away!==undefined?r.away:''}" placeholder="?">
+            </div>
+          </div>
+        </div>`;
+      } else {
+        html+=`<div class="result-item"><div class="result-label">${teams.home} vs ${teams.away}<small>${m.date}${m.group?' · Grupo '+m.group:''}</small></div><div class="result-inputs"><input type="number" min="0" max="20" id="rh_${m.id}" value="${r.home!==undefined?r.home:''}" placeholder="?"><span style="color:var(--muted);font-weight:700;padding:0 4px">—</span><input type="number" min="0" max="20" id="ra_${m.id}" value="${r.away!==undefined?r.away:''}" placeholder="?"></div></div>`;
+      }
     });
   });
   document.getElementById('adminResultsContainer').innerHTML=html;
 }
 
 window.saveResults = async function() {
-  // Reconstruir resultados desde cero: si el campo está vacío, se elimina
   const newResults = {};
   ALL_MATCHES.forEach(m=>{
     const h=document.getElementById('rh_'+m.id)?.value;
@@ -752,11 +850,24 @@ window.saveResults = async function() {
     if(h!==''&&a!==''&&h!==undefined&&a!==undefined){
       newResults[m.id]={home:parseInt(h),away:parseInt(a)};
     }
-    // Si los campos están vacíos, simplemente no se incluye en newResults → se borra
   });
   results = newResults;
-  try{await setDoc(doc(db,'config','results'),results);showToast('✅ Resultados guardados','success');}
-  catch(e){showToast('Error al guardar resultados','error');}
+  // Save editable knockout team names
+  const newMatchNames = {};
+  KNOCKOUT_MATCHES.forEach(m=>{
+    const h=document.getElementById('nh_'+m.id)?.value.trim();
+    const a=document.getElementById('na_'+m.id)?.value.trim();
+    if(h||a) newMatchNames[m.id]={home:h||'',away:a||''};
+  });
+  matchNames = newMatchNames;
+  try{
+    await Promise.all([
+      setDoc(doc(db,'config','results'),results),
+      setDoc(doc(db,'config','matchNames'),matchNames),
+    ]);
+    showToast('✅ Resultados y cruces guardados','success');
+    renderMatches(); // refresh participant view too
+  } catch(e){showToast('Error al guardar resultados','error');}
 }
 
 window.saveRealChampion = async function() {
@@ -840,6 +951,7 @@ window.loadVerifyData = async function() {
 }
 
 function verifyCardHTML(m, prono) {
+  const teams = getMatchTeams(m);
   const p = prono[m.id];
   const r = results[m.id];
   const hasProno = p && p.home !== undefined && p.home !== '';
@@ -863,7 +975,7 @@ function verifyCardHTML(m, prono) {
 
   return `<div class="verify-card">
     <div class="v-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}</span></div>
-    <div class="verify-teams">${m.home} vs ${m.away}</div>
+    <div class="verify-teams">${teams.home} vs ${teams.away}</div>
     ${scoreHTML}${ptsHTML}
   </div>`;
 }
