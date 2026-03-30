@@ -668,17 +668,21 @@ function renderMatches() {
   const groupMatches = ALL_MATCHES.filter(m=>m.round==='grupos');
   const knockoutRounds = ['r32','r16','qf','sf','3ero','final'];
 
+  // Ordenar partidos de grupos por fecha (Jun 11 → Jun 27)
+  const monthDay = d => { const p=d.split(' '); const mon={Jun:6,Jul:7}; return mon[p[0]]*100+parseInt(p[1]); };
+  const sorted = [...groupMatches].sort((a,b)=>monthDay(a.date)-monthDay(b.date));
+
   // FASE DE GRUPOS: agrupar por fecha
   html+=`<div class="round-header">${ROUND_NAMES['grupos']}</div>`;
-  const dates = [...new Set(groupMatches.map(m=>m.date))];
+  const dates = [...new Set(sorted.map(m=>m.date))];
   dates.forEach(date => {
-    const ms = groupMatches.filter(m=>m.date===date);
+    const ms = sorted.filter(m=>m.date===date);
     html+=`<div class="group-label">📅 ${date}</div><div class="match-grid">`;
     ms.forEach(m=>html+=mHTML(m));
     html+='</div>';
   });
 
-  // RONDAS ELIMINATORIAS: agrupar por ronda como antes
+  // RONDAS ELIMINATORIAS: agrupar por ronda
   knockoutRounds.forEach(round => {
     const ms = ALL_MATCHES.filter(m=>m.round===round);
     if(!ms.length) return;
