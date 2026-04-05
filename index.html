@@ -337,93 +337,93 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-const TEAMS = ["Argentina","Alemania","Arabia Saudí","Australia","Austria","Bélgica","Bolivia/Irak/Surinam*","Bosnia/Italia/Gales*","Brasil","Canadá","Cabo Verde","Catar","Colombia","Corea del Sur","Costa de Marfil","Croacia","Curazao","Ecuador","Egipto","Escocia","España","Estados Unidos","Francia","Ghana","Haití","Inglaterra","Irán","Jamaica/Congo/N.Caledonia*","Japón","Jordania","Marruecos","México","Noruega","Nueva Zelanda","Países Bajos","Panamá","Paraguay","Portugal","Rep. Checa/Dinamarca*","Senegal","Sudáfrica","Suiza","Túnez","Turquía/Rumania*","Ucrania/Polonia/Albania*","Uruguay","Uzbekistán","Otros"];
+const TEAMS = ["Argentina","Alemania","Arabia Saudí","Australia","Austria","Bélgica","Bosnia y Herz.","Brasil","Canadá","Cabo Verde","Catar","Chequia","Colombia","Corea del Sur","Costa de Marfil","Croacia","Curazao","Ecuador","Egipto","Escocia","España","Estados Unidos","Francia","Ghana","Haití","Inglaterra","Irán","Irak","Japón","Jordania","Marruecos","México","Noruega","Nueva Zelanda","Países Bajos","Panamá","Paraguay","Portugal","RD Congo","Senegal","Sudáfrica","Suecia","Suiza","Túnez","Turquía","Uruguay","Uzbekistán","Otros"];
 
 const GROUP_MATCHES = [
-  // Grupo A: México, Sudáfrica, Corea del Sur, Dinamarca/Macedonia/R.Checa/Irlanda
-  {id:"g1",round:"grupos",group:"A",home:"México",away:"Sudáfrica",date:"Jun 11"},
-  {id:"g2",round:"grupos",group:"A",home:"Corea del Sur",away:"Rep. Checa/Dinamarca*",date:"Jun 11"},
-  {id:"g3",round:"grupos",group:"A",home:"Rep. Checa/Dinamarca*",away:"Sudáfrica",date:"Jun 18"},
-  {id:"g4",round:"grupos",group:"A",home:"México",away:"Corea del Sur",date:"Jun 18"},
-  {id:"g5",round:"grupos",group:"A",home:"Rep. Checa/Dinamarca*",away:"México",date:"Jun 24"},
-  {id:"g6",round:"grupos",group:"A",home:"Sudáfrica",away:"Corea del Sur",date:"Jun 24"},
-  // Grupo B: Canadá, Bosnia/Italia/Irlanda Norte/Gales, Catar, Suiza
-  {id:"g7",round:"grupos",group:"B",home:"Canadá",away:"Italia/Bosnia/Gales*",date:"Jun 12"},
-  {id:"g8",round:"grupos",group:"B",home:"Catar",away:"Suiza",date:"Jun 13"},
-  {id:"g9",round:"grupos",group:"B",home:"Suiza",away:"Italia/Bosnia/Gales*",date:"Jun 18"},
-  {id:"g10",round:"grupos",group:"B",home:"Canadá",away:"Catar",date:"Jun 18"},
-  {id:"g11",round:"grupos",group:"B",home:"Suiza",away:"Canadá",date:"Jun 24"},
-  {id:"g12",round:"grupos",group:"B",home:"Italia/Bosnia/Gales*",away:"Catar",date:"Jun 24"},
+  // Grupo A: México, Sudáfrica, Corea del Sur, Chequia
+  {id:"g1",round:"grupos",group:"A",home:"México",away:"Sudáfrica",date:"Jun 11",time:"16:00"},
+  {id:"g2",round:"grupos",group:"A",home:"Corea del Sur",away:"Chequia",date:"Jun 11",time:"23:00"},
+  {id:"g3",round:"grupos",group:"A",home:"Chequia",away:"Sudáfrica",date:"Jun 18",time:"13:00"},
+  {id:"g4",round:"grupos",group:"A",home:"México",away:"Corea del Sur",date:"Jun 18",time:"22:00"},
+  {id:"g5",round:"grupos",group:"A",home:"Chequia",away:"México",date:"Jun 24",time:"22:00"},
+  {id:"g6",round:"grupos",group:"A",home:"Sudáfrica",away:"Corea del Sur",date:"Jun 24",time:"22:00"},
+  // Grupo B: Canadá, Bosnia y Herz., Catar, Suiza
+  {id:"g7",round:"grupos",group:"B",home:"Canadá",away:"Bosnia y Herz.",date:"Jun 12",time:"16:00"},
+  {id:"g8",round:"grupos",group:"B",home:"Catar",away:"Suiza",date:"Jun 13",time:"16:00"},
+  {id:"g9",round:"grupos",group:"B",home:"Suiza",away:"Bosnia y Herz.",date:"Jun 18",time:"16:00"},
+  {id:"g10",round:"grupos",group:"B",home:"Canadá",away:"Catar",date:"Jun 18",time:"19:00"},
+  {id:"g11",round:"grupos",group:"B",home:"Suiza",away:"Canadá",date:"Jun 24",time:"16:00"},
+  {id:"g12",round:"grupos",group:"B",home:"Bosnia y Herz.",away:"Catar",date:"Jun 24",time:"16:00"},
   // Grupo C: Brasil, Marruecos, Haití, Escocia
-  {id:"g13",round:"grupos",group:"C",home:"Brasil",away:"Marruecos",date:"Jun 13"},
-  {id:"g14",round:"grupos",group:"C",home:"Haití",away:"Escocia",date:"Jun 13"},
-  {id:"g15",round:"grupos",group:"C",home:"Escocia",away:"Marruecos",date:"Jun 19"},
-  {id:"g16",round:"grupos",group:"C",home:"Brasil",away:"Haití",date:"Jun 19"},
-  {id:"g17",round:"grupos",group:"C",home:"Brasil",away:"Escocia",date:"Jun 24"},
-  {id:"g18",round:"grupos",group:"C",home:"Marruecos",away:"Haití",date:"Jun 24"},
-  // Grupo D: Estados Unidos, Paraguay, Australia, Kosovo/Rumania/Eslovaquia/Turquía
-  {id:"g19",round:"grupos",group:"D",home:"Estados Unidos",away:"Paraguay",date:"Jun 12"},
-  {id:"g20",round:"grupos",group:"D",home:"Australia",away:"Turquía/Rumania*",date:"Jun 13"},
-  {id:"g21",round:"grupos",group:"D",home:"Estados Unidos",away:"Australia",date:"Jun 19"},
-  {id:"g22",round:"grupos",group:"D",home:"Turquía/Rumania*",away:"Paraguay",date:"Jun 19"},
-  {id:"g23",round:"grupos",group:"D",home:"Turquía/Rumania*",away:"Estados Unidos",date:"Jun 25"},
-  {id:"g24",round:"grupos",group:"D",home:"Paraguay",away:"Australia",date:"Jun 25"},
+  {id:"g13",round:"grupos",group:"C",home:"Brasil",away:"Marruecos",date:"Jun 13",time:"19:00"},
+  {id:"g14",round:"grupos",group:"C",home:"Haití",away:"Escocia",date:"Jun 13",time:"22:00"},
+  {id:"g15",round:"grupos",group:"C",home:"Escocia",away:"Marruecos",date:"Jun 19",time:"19:00"},
+  {id:"g16",round:"grupos",group:"C",home:"Brasil",away:"Haití",date:"Jun 19",time:"22:00"},
+  {id:"g17",round:"grupos",group:"C",home:"Brasil",away:"Escocia",date:"Jun 24",time:"19:00"},
+  {id:"g18",round:"grupos",group:"C",home:"Marruecos",away:"Haití",date:"Jun 24",time:"19:00"},
+  // Grupo D: Estados Unidos, Paraguay, Australia, Turquía
+  {id:"g19",round:"grupos",group:"D",home:"Estados Unidos",away:"Paraguay",date:"Jun 12",time:"22:00"},
+  {id:"g20",round:"grupos",group:"D",home:"Australia",away:"Turquía",date:"Jun 14",time:"01:00"},
+  {id:"g21",round:"grupos",group:"D",home:"Estados Unidos",away:"Australia",date:"Jun 19",time:"16:00"},
+  {id:"g22",round:"grupos",group:"D",home:"Turquía",away:"Paraguay",date:"Jun 20",time:"01:00"},
+  {id:"g23",round:"grupos",group:"D",home:"Turquía",away:"Estados Unidos",date:"Jun 26",time:"01:00"},
+  {id:"g24",round:"grupos",group:"D",home:"Paraguay",away:"Australia",date:"Jun 26",time:"01:00"},
   // Grupo E: Alemania, Curazao, Costa de Marfil, Ecuador
-  {id:"g25",round:"grupos",group:"E",home:"Alemania",away:"Curazao",date:"Jun 14"},
-  {id:"g26",round:"grupos",group:"E",home:"Costa de Marfil",away:"Ecuador",date:"Jun 14"},
-  {id:"g27",round:"grupos",group:"E",home:"Alemania",away:"Costa de Marfil",date:"Jun 20"},
-  {id:"g28",round:"grupos",group:"E",home:"Ecuador",away:"Curazao",date:"Jun 20"},
-  {id:"g29",round:"grupos",group:"E",home:"Curazao",away:"Costa de Marfil",date:"Jun 25"},
-  {id:"g30",round:"grupos",group:"E",home:"Ecuador",away:"Alemania",date:"Jun 25"},
-  // Grupo F: Países Bajos, Japón, Albania/Polonia/Suecia/Ucrania, Túnez
-  {id:"g31",round:"grupos",group:"F",home:"Países Bajos",away:"Japón",date:"Jun 14"},
-  {id:"g32",round:"grupos",group:"F",home:"Ucrania/Polonia/Albania*",away:"Túnez",date:"Jun 14"},
-  {id:"g33",round:"grupos",group:"F",home:"Países Bajos",away:"Ucrania/Polonia/Albania*",date:"Jun 20"},
-  {id:"g34",round:"grupos",group:"F",home:"Túnez",away:"Japón",date:"Jun 20"},
-  {id:"g35",round:"grupos",group:"F",home:"Japón",away:"Ucrania/Polonia/Albania*",date:"Jun 25"},
-  {id:"g36",round:"grupos",group:"F",home:"Túnez",away:"Países Bajos",date:"Jun 25"},
+  {id:"g25",round:"grupos",group:"E",home:"Alemania",away:"Curazao",date:"Jun 14",time:"14:00"},
+  {id:"g26",round:"grupos",group:"E",home:"Costa de Marfil",away:"Ecuador",date:"Jun 14",time:"20:00"},
+  {id:"g27",round:"grupos",group:"E",home:"Alemania",away:"Costa de Marfil",date:"Jun 20",time:"17:00"},
+  {id:"g28",round:"grupos",group:"E",home:"Ecuador",away:"Curazao",date:"Jun 20",time:"21:00"},
+  {id:"g29",round:"grupos",group:"E",home:"Curazao",away:"Costa de Marfil",date:"Jun 25",time:"17:00"},
+  {id:"g30",round:"grupos",group:"E",home:"Ecuador",away:"Alemania",date:"Jun 25",time:"17:00"},
+  // Grupo F: Países Bajos, Japón, Suecia, Túnez
+  {id:"g31",round:"grupos",group:"F",home:"Países Bajos",away:"Japón",date:"Jun 14",time:"17:00"},
+  {id:"g32",round:"grupos",group:"F",home:"Suecia",away:"Túnez",date:"Jun 14",time:"23:00"},
+  {id:"g33",round:"grupos",group:"F",home:"Países Bajos",away:"Suecia",date:"Jun 20",time:"14:00"},
+  {id:"g34",round:"grupos",group:"F",home:"Túnez",away:"Japón",date:"Jun 21",time:"01:00"},
+  {id:"g35",round:"grupos",group:"F",home:"Japón",away:"Suecia",date:"Jun 25",time:"20:00"},
+  {id:"g36",round:"grupos",group:"F",home:"Túnez",away:"Países Bajos",date:"Jun 25",time:"20:00"},
   // Grupo G: Bélgica, Egipto, Irán, Nueva Zelanda
-  {id:"g37",round:"grupos",group:"G",home:"Bélgica",away:"Egipto",date:"Jun 15"},
-  {id:"g38",round:"grupos",group:"G",home:"Irán",away:"Nueva Zelanda",date:"Jun 15"},
-  {id:"g39",round:"grupos",group:"G",home:"Bélgica",away:"Irán",date:"Jun 21"},
-  {id:"g40",round:"grupos",group:"G",home:"Nueva Zelanda",away:"Egipto",date:"Jun 21"},
-  {id:"g41",round:"grupos",group:"G",home:"Egipto",away:"Irán",date:"Jun 26"},
-  {id:"g42",round:"grupos",group:"G",home:"Nueva Zelanda",away:"Bélgica",date:"Jun 26"},
+  {id:"g37",round:"grupos",group:"G",home:"Bélgica",away:"Egipto",date:"Jun 15",time:"16:00"},
+  {id:"g38",round:"grupos",group:"G",home:"Irán",away:"Nueva Zelanda",date:"Jun 15",time:"22:00"},
+  {id:"g39",round:"grupos",group:"G",home:"Bélgica",away:"Irán",date:"Jun 21",time:"16:00"},
+  {id:"g40",round:"grupos",group:"G",home:"Nueva Zelanda",away:"Egipto",date:"Jun 21",time:"22:00"},
+  {id:"g41",round:"grupos",group:"G",home:"Egipto",away:"Irán",date:"Jun 27",time:"00:00"},
+  {id:"g42",round:"grupos",group:"G",home:"Nueva Zelanda",away:"Bélgica",date:"Jun 27",time:"00:00"},
   // Grupo H: España, Cabo Verde, Arabia Saudí, Uruguay
-  {id:"g43",round:"grupos",group:"H",home:"España",away:"Cabo Verde",date:"Jun 15"},
-  {id:"g44",round:"grupos",group:"H",home:"Arabia Saudí",away:"Uruguay",date:"Jun 15"},
-  {id:"g45",round:"grupos",group:"H",home:"España",away:"Arabia Saudí",date:"Jun 21"},
-  {id:"g46",round:"grupos",group:"H",home:"Uruguay",away:"Cabo Verde",date:"Jun 21"},
-  {id:"g47",round:"grupos",group:"H",home:"Cabo Verde",away:"Arabia Saudí",date:"Jun 26"},
-  {id:"g48",round:"grupos",group:"H",home:"Uruguay",away:"España",date:"Jun 26"},
-  // Grupo I: Francia, Senegal, Irak/Bolivia/Surinam, Noruega
-  {id:"g49",round:"grupos",group:"I",home:"Francia",away:"Senegal",date:"Jun 16"},
-  {id:"g50",round:"grupos",group:"I",home:"Irak/Bolivia/Surinam*",away:"Noruega",date:"Jun 16"},
-  {id:"g51",round:"grupos",group:"I",home:"Francia",away:"Irak/Bolivia/Surinam*",date:"Jun 22"},
-  {id:"g52",round:"grupos",group:"I",home:"Noruega",away:"Senegal",date:"Jun 22"},
-  {id:"g53",round:"grupos",group:"I",home:"Noruega",away:"Francia",date:"Jun 26"},
-  {id:"g54",round:"grupos",group:"I",home:"Senegal",away:"Irak/Bolivia/Surinam*",date:"Jun 26"},
+  {id:"g43",round:"grupos",group:"H",home:"España",away:"Cabo Verde",date:"Jun 15",time:"13:00"},
+  {id:"g44",round:"grupos",group:"H",home:"Arabia Saudí",away:"Uruguay",date:"Jun 15",time:"19:00"},
+  {id:"g45",round:"grupos",group:"H",home:"España",away:"Arabia Saudí",date:"Jun 21",time:"13:00"},
+  {id:"g46",round:"grupos",group:"H",home:"Uruguay",away:"Cabo Verde",date:"Jun 21",time:"19:00"},
+  {id:"g47",round:"grupos",group:"H",home:"Cabo Verde",away:"Arabia Saudí",date:"Jun 26",time:"21:00"},
+  {id:"g48",round:"grupos",group:"H",home:"Uruguay",away:"España",date:"Jun 26",time:"21:00"},
+  // Grupo I: Francia, Senegal, Irak, Noruega
+  {id:"g49",round:"grupos",group:"I",home:"Francia",away:"Senegal",date:"Jun 16",time:"16:00"},
+  {id:"g50",round:"grupos",group:"I",home:"Irak",away:"Noruega",date:"Jun 16",time:"19:00"},
+  {id:"g51",round:"grupos",group:"I",home:"Francia",away:"Irak",date:"Jun 22",time:"18:00"},
+  {id:"g52",round:"grupos",group:"I",home:"Noruega",away:"Senegal",date:"Jun 22",time:"21:00"},
+  {id:"g53",round:"grupos",group:"I",home:"Noruega",away:"Francia",date:"Jun 26",time:"16:00"},
+  {id:"g54",round:"grupos",group:"I",home:"Senegal",away:"Irak",date:"Jun 26",time:"16:00"},
   // Grupo J: Argentina, Argelia, Austria, Jordania
-  {id:"g55",round:"grupos",group:"J",home:"Argentina",away:"Argelia",date:"Jun 16"},
-  {id:"g56",round:"grupos",group:"J",home:"Austria",away:"Jordania",date:"Jun 16"},
-  {id:"g57",round:"grupos",group:"J",home:"Argentina",away:"Austria",date:"Jun 22"},
-  {id:"g58",round:"grupos",group:"J",home:"Jordania",away:"Argelia",date:"Jun 22"},
-  {id:"g59",round:"grupos",group:"J",home:"Argelia",away:"Austria",date:"Jun 27"},
-  {id:"g60",round:"grupos",group:"J",home:"Jordania",away:"Argentina",date:"Jun 27"},
-  // Grupo K: Portugal, Jamaica/RD Congo/N.Caledonia, Uzbekistán, Colombia
-  {id:"g61",round:"grupos",group:"K",home:"Portugal",away:"Jamaica/Congo/N.Caledonia*",date:"Jun 17"},
-  {id:"g62",round:"grupos",group:"K",home:"Uzbekistán",away:"Colombia",date:"Jun 17"},
-  {id:"g63",round:"grupos",group:"K",home:"Portugal",away:"Uzbekistán",date:"Jun 23"},
-  {id:"g64",round:"grupos",group:"K",home:"Colombia",away:"Jamaica/Congo/N.Caledonia*",date:"Jun 23"},
-  {id:"g65",round:"grupos",group:"K",home:"Colombia",away:"Portugal",date:"Jun 27"},
-  {id:"g66",round:"grupos",group:"K",home:"Jamaica/Congo/N.Caledonia*",away:"Uzbekistán",date:"Jun 27"},
+  {id:"g55",round:"grupos",group:"J",home:"Argentina",away:"Argelia",date:"Jun 16",time:"22:00"},
+  {id:"g56",round:"grupos",group:"J",home:"Austria",away:"Jordania",date:"Jun 17",time:"01:00"},
+  {id:"g57",round:"grupos",group:"J",home:"Argentina",away:"Austria",date:"Jun 22",time:"14:00"},
+  {id:"g58",round:"grupos",group:"J",home:"Jordania",away:"Argelia",date:"Jun 23",time:"00:00"},
+  {id:"g59",round:"grupos",group:"J",home:"Argelia",away:"Austria",date:"Jun 28",time:"01:00"},
+  {id:"g60",round:"grupos",group:"J",home:"Jordania",away:"Argentina",date:"Jun 28",time:"01:00"},
+  // Grupo K: Portugal, RD Congo, Uzbekistán, Colombia
+  {id:"g61",round:"grupos",group:"K",home:"Portugal",away:"RD Congo",date:"Jun 17",time:"14:00"},
+  {id:"g62",round:"grupos",group:"K",home:"Uzbekistán",away:"Colombia",date:"Jun 17",time:"23:00"},
+  {id:"g63",round:"grupos",group:"K",home:"Portugal",away:"Uzbekistán",date:"Jun 23",time:"14:00"},
+  {id:"g64",round:"grupos",group:"K",home:"Colombia",away:"RD Congo",date:"Jun 23",time:"23:00"},
+  {id:"g65",round:"grupos",group:"K",home:"Colombia",away:"Portugal",date:"Jun 27",time:"20:30"},
+  {id:"g66",round:"grupos",group:"K",home:"RD Congo",away:"Uzbekistán",date:"Jun 27",time:"20:30"},
   // Grupo L: Inglaterra, Croacia, Ghana, Panamá
-  {id:"g67",round:"grupos",group:"L",home:"Inglaterra",away:"Croacia",date:"Jun 17"},
-  {id:"g68",round:"grupos",group:"L",home:"Ghana",away:"Panamá",date:"Jun 17"},
-  {id:"g69",round:"grupos",group:"L",home:"Inglaterra",away:"Ghana",date:"Jun 23"},
-  {id:"g70",round:"grupos",group:"L",home:"Panamá",away:"Croacia",date:"Jun 23"},
-  {id:"g71",round:"grupos",group:"L",home:"Panamá",away:"Inglaterra",date:"Jun 27"},
-  {id:"g72",round:"grupos",group:"L",home:"Croacia",away:"Ghana",date:"Jun 27"},
+  {id:"g67",round:"grupos",group:"L",home:"Inglaterra",away:"Croacia",date:"Jun 17",time:"17:00"},
+  {id:"g68",round:"grupos",group:"L",home:"Ghana",away:"Panamá",date:"Jun 17",time:"20:00"},
+  {id:"g69",round:"grupos",group:"L",home:"Inglaterra",away:"Ghana",date:"Jun 23",time:"17:00"},
+  {id:"g70",round:"grupos",group:"L",home:"Panamá",away:"Croacia",date:"Jun 23",time:"20:00"},
+  {id:"g71",round:"grupos",group:"L",home:"Panamá",away:"Inglaterra",date:"Jun 27",time:"18:00"},
+  {id:"g72",round:"grupos",group:"L",home:"Croacia",away:"Ghana",date:"Jun 27",time:"18:00"},
 ];
 
 const KNOCKOUT_MATCHES = [
@@ -709,7 +709,7 @@ function mHTML(m) {
     else fb=`<div class="match-feedback fb-wrong">❌ No acertaste</div>`;
   } else if(hV!==''&&aV!=='') fb=`<div class="match-feedback fb-pending">💾 Guardado</div>`;
   return `<div class="match-card${locked?' locked':''}">
-    <div class="match-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}${locked?' <span class="lock-pill">🔒</span>':''}</span></div>
+    <div class="match-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}${m.time?' · '+m.time:''}${locked?' <span class="lock-pill">🔒</span>':''}</span></div>
     <div class="match-teams"><div class="team-name home">${teams.home}</div><div class="match-vs">VS</div><div class="team-name">${teams.away}</div></div>
     ${locked&&r?`<div class="real-result">${r.home} — ${r.away}<small>resultado real</small></div>`:''}
     <div class="score-row">
@@ -940,7 +940,7 @@ function renderResultados() {
         <div class="result-match-date">${m.date}</div>
         <div class="result-match-teams">
           ${teams.home} vs ${teams.away}
-          ${groupTag ? `<div class="group-tag">${groupTag}</div>` : ''}
+          <div class="group-tag">${groupTag}${m.time ? (groupTag?' · ':'')+m.time+' hs':''}</div>
         </div>
         <div class="result-score">${r.home} — ${r.away}</div>
       </div>`;
