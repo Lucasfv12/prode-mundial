@@ -232,6 +232,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
           <select id="championPick" onchange="markDirty()" style="min-width:200px"><option value="">Elegir campeón</option></select>
           <div id="championFeedback"></div>
         </div>
+        <div id="championDeadline" style="margin-top:12px;font-size:.82rem"></div>
       </div>
       <div id="matchesContainer"></div>
       <div class="card">
@@ -286,9 +287,17 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
       </div>
       <div class="card" style="background:linear-gradient(135deg,rgba(240,192,64,.06) 0%,var(--surface) 100%);border-color:rgba(240,192,64,.2)">
         <div class="card-title">🏆 Campeón Real del Mundial</div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
           <select id="realChampion" style="min-width:200px"><option value="">Seleccioná</option></select>
           <button class="btn btn-gold" onclick="saveRealChampion()">Guardar Campeón</button>
+        </div>
+        <div style="padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <label style="font-size:.85rem;color:var(--muted2)">🔒 Bloqueo manual del campeón:</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem">
+            <input type="checkbox" id="championLockToggle" onchange="toggleChampionLock()" style="width:16px;height:16px;cursor:pointer">
+            Bloquear para todos los participantes ahora
+          </label>
+          <span id="championLockStatus" style="font-size:.8rem;color:var(--muted2)"></span>
         </div>
       </div>
       <div class="card">
@@ -474,10 +483,13 @@ const KNOCKOUT_ROUNDS = ['r32','r16','qf','sf','3ero','final'];
 let currentUser = null;
 let participants = {};
 let results = {};
-let matchNames = {}; // { matchId: {home, away} } — editable by admin for knockout
+let matchNames = {};
 let myPronosticos = {};
 let realChampion = '';
 let adminPassword = 'admin2026';
+let championLocked = false;
+
+const CHAMPION_DEADLINE = new Date('2026-06-11T00:00:00-03:00');
 
 async function init() {
   try {
@@ -487,6 +499,7 @@ async function init() {
       if (d.adminPassword) adminPassword = d.adminPassword;
       if (d.participants) participants = d.participants;
       if (d.realChampion !== undefined) realChampion = d.realChampion;
+      if (d.championLocked !== undefined) championLocked = d.championLocked;
     }
     const resSnap = await getDoc(doc(db,'config','results'));
     if (resSnap.exists()) results = resSnap.data();
@@ -628,12 +641,16 @@ function enterApp() {
     document.getElementById('navVerify').style.display='';
     renderAdminParticipants(); renderAdminResults(); populateVerifySelect();
     document.getElementById('realChampion').value = realChampion||'';
+    const lockToggle = document.getElementById('championLockToggle');
+    if (lockToggle) { lockToggle.checked = championLocked; }
+    const lockStatus = document.getElementById('championLockStatus');
+    if (lockStatus) { lockStatus.textContent = championLocked ? '🔒 Bloqueado manualmente' : ''; lockStatus.style.color = 'var(--red)'; }
     showTab('admin', document.getElementById('navAdmin'));
   } else {
     document.getElementById('saveBar').style.display='flex';
     renderMatches();
     document.getElementById('championPick').value = myPronosticos.champion||'';
-    updateChampionFeedback(); updateProgress();
+    updateChampionFeedback(); updateChampionUI(); updateProgress();
     showTab('pronosticos', document.getElementById('navProno'));
   }
 }
@@ -756,7 +773,7 @@ window.savePronosticos = async function() {
     st.textContent='✅ Guardado'; st.className='save-status saved';
     renderMatches();
     document.getElementById('championPick').value = myPronosticos.champion||'';
-    updateChampionFeedback(); updateProgress();
+    updateChampionFeedback(); updateChampionUI(); updateProgress();
     showToast('¡Pronósticos guardados!','success');
   } catch(e){st.textContent='❌ Error'; st.className='save-status'; showToast('Error al guardar','error');}
 }
@@ -934,7 +951,7 @@ window.saveRealChampion = async function() {
 }
 
 async function saveConfig() {
-  await setDoc(doc(db,'config','main'),{adminPassword,participants,realChampion});
+  await setDoc(doc(db,'config','main'),{adminPassword,participants,realChampion,championLocked});
 }
 
 function renderResultados() {
@@ -974,6 +991,35 @@ function renderResultados() {
   });
 
   container.innerHTML = html;
+}
+
+function isChampionLocked() {
+  return championLocked || new Date() >= CHAMPION_DEADLINE;
+}
+
+function updateChampionUI() {
+  const sel = document.getElementById('championPick');
+  const deadline = document.getElementById('championDeadline');
+  if (!sel || !deadline) return;
+  const locked = isChampionLocked();
+  sel.disabled = locked;
+  if (locked) {
+    deadline.innerHTML = `<span style="color:var(--red);font-weight:600">🔒 Elección de campeón cerrada — no se puede modificar.</span>`;
+  } else {
+    const now = new Date();
+    const diff = CHAMPION_DEADLINE - now;
+    const days = Math.ceil(diff / (1000*60*60*24));
+    deadline.innerHTML = `<span style="color:var(--gold2)">⏳ Tenés tiempo hasta el <strong>10 de junio</strong> para elegir tu campeón${days>0?' ('+days+' día'+(days>1?'s':'')+')':''}.`;
+  }
+}
+
+window.toggleChampionLock = async function() {
+  championLocked = document.getElementById('championLockToggle').checked;
+  await saveConfig();
+  const status = document.getElementById('championLockStatus');
+  status.textContent = championLocked ? '🔒 Bloqueado manualmente' : '✅ Desbloqueado';
+  status.style.color = championLocked ? 'var(--red)' : 'var(--green)';
+  showToast(championLocked ? '🔒 Campeón bloqueado para todos' : '✅ Campeón desbloqueado', 'success');
 }
 
 window.showToast = function(msg,type='success') {
