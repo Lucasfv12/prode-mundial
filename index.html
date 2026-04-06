@@ -106,9 +106,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .toast.error{border-color:var(--red);color:var(--red)}
 .loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:9999;transition:opacity .4s}
 .loading-overlay.hidden{opacity:0;pointer-events:none}
-.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--muted2);letter-spacing:2px}
+.balls-stage{position:relative;width:160px;height:110px;margin-bottom:8px}
+.loader-ball{position:absolute;font-size:28px;line-height:1;bottom:0;transform-origin:center bottom;user-select:none}
+.loader-shadow{position:absolute;bottom:0;height:5px;border-radius:50%;background:rgba(255,255,255,0.12)}
 select{background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 14px;font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;cursor:pointer;transition:border-color .2s}
 select:focus{border-color:var(--gold)}
 input[type=text],input[type=password]{background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 14px;font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
@@ -160,10 +161,44 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text">Cargando Prode...</div>
+  <div class="balls-stage">
+    <div class="loader-ball" id="lb0">⚽</div>
+    <div class="loader-ball" id="lb1">⚽</div>
+    <div class="loader-ball" id="lb2">⚽</div>
+    <div class="loader-shadow" id="ls0"></div>
+    <div class="loader-shadow" id="ls1"></div>
+    <div class="loader-shadow" id="ls2"></div>
+  </div>
+  <div class="loading-text">Cargando Prode 2026...</div>
 </div>
 <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const PERIOD=650, FLOOR=78, BSIZE=30;
+  const bs=[
+    {el:document.getElementById('lb0'),sh:document.getElementById('ls0'),x:14, phase:0},
+    {el:document.getElementById('lb1'),sh:document.getElementById('ls1'),x:63, phase:0.55},
+    {el:document.getElementById('lb2'),sh:document.getElementById('ls2'),x:112,phase:1.1},
+  ];
+  function animate(ts){
+    bs.forEach(b=>{
+      const h=Math.abs(Math.sin(((ts/PERIOD)+b.phase)*Math.PI));
+      const y=h*FLOOR;
+      b.el.style.left=b.x+'px';
+      b.el.style.bottom=y+'px';
+      b.el.style.transform=`scaleX(${1+(1-h)*.2}) scaleY(${1-(1-h)*.15})`;
+      const sw=26+(1-h)*16;
+      b.sh.style.left=(b.x+BSIZE/2-sw/2)+'px';
+      b.sh.style.width=sw+'px';
+      b.sh.style.opacity=0.04+(1-h)*.2;
+    });
+    if(!document.getElementById('loadingOverlay').classList.contains('hidden'))
+      requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+</script>
 
 <div class="screen active" id="screen-login">
   <div class="login-box">
