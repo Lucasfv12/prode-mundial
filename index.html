@@ -282,7 +282,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
         <div class="card-title">📊 Tabla de Posiciones</div>
         <div style="overflow-x:auto">
           <table class="leaderboard">
-            <thead><tr><th>#</th><th>Nombre</th><th>🎯 Exactos</th><th>✅ Correctos</th><th>🏆 Campeón</th><th>Total</th></tr></thead>
+            <thead><tr><th>#</th><th>Nombre</th><th>Total</th><th>🎯 Exactos</th><th>✅ Correctos</th><th>🏆 Campeón</th></tr></thead>
             <tbody id="leaderboardBody"></tbody>
           </table>
         </div>
@@ -838,7 +838,7 @@ async function renderLeaderboard() {
     scores.sort((a,b)=>b.total-a.total||b.exact-a.exact);
     if(!scores.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">Todavía no hay pronósticos cargados.</td></tr>';return;}
     const medals=['🥇','🥈','🥉'];
-    tbody.innerHTML=scores.map((s,i)=>`<tr class="rank-${i+1}"><td class="rank-cell">${medals[i]||i+1}</td><td><strong>${s.name}</strong></td><td style="color:var(--gold)">${s.exact}</td><td style="color:var(--green)">${s.correct}</td><td>${s.champPts?'✅ +10':'—'}</td><td><span class="pts-pill">${s.total} pts</span></td></tr>`).join('');
+    tbody.innerHTML=scores.map((s,i)=>`<tr class="rank-${i+1}"><td class="rank-cell">${medals[i]||i+1}</td><td><strong>${s.name}</strong></td><td><span class="pts-pill">${s.total} pts</span></td><td style="color:var(--gold)">${s.exact}</td><td style="color:var(--green)">${s.correct}</td><td>${s.champPts?'✅ +10':'—'}</td></tr>`).join('');
   } catch(e){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">Error al cargar datos.</td></tr>';}
 }
 
