@@ -295,10 +295,13 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
         </div>
         <div id="championDeadline" style="margin-top:12px;font-size:.82rem"></div>
       </div>
-      <div id="matchesContainer"></div>
+      <div class="card" style="padding-bottom:8px">
+        <div class="phase-tabs-admin" id="pronoPhaseTabsContainer"></div>
+        <div id="matchesContainer"></div>
+      </div>
       <div class="card">
         <div class="card-title">📈 Tu avance</div>
-        <div class="progress-label"><span>Pronósticos completados</span><span id="progressText">0 / 63</span></div>
+        <div class="progress-label"><span>Pronósticos completados</span><span id="progressText">0 / 104</span></div>
         <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       </div>
     </div>
@@ -753,36 +756,60 @@ window.showTab = function(name, btn) {
   document.getElementById('saveBar').style.display = (name==='pronosticos'&&currentUser&&!currentUser.isAdmin)?'flex':'none';
 }
 
+let currentPronoPhase = 'grupos';
+
 function renderMatches() {
-  let html='';
-  const groupMatches = ALL_MATCHES.filter(m=>m.round==='grupos');
-  const knockoutRounds = ['r32','r16','qf','sf','3ero','final'];
-
-  // Ordenar partidos de grupos por fecha (Jun 11 → Jun 27)
   const monthDay = d => { const p=d.split(' '); const mon={Jun:6,Jul:7}; return mon[p[0]]*100+parseInt(p[1]); };
-  const sorted = [...groupMatches].sort((a,b)=>monthDay(a.date)-monthDay(b.date));
 
-  // FASE DE GRUPOS: agrupar por fecha
-  html+=`<div class="round-header">${ROUND_NAMES['grupos']}</div>`;
-  const dates = [...new Set(sorted.map(m=>m.date))];
-  dates.forEach(date => {
-    const ms = sorted.filter(m=>m.date===date);
-    html+=`<div class="group-label">📅 ${date}</div><div class="match-grid">`;
-    ms.forEach(m=>html+=mHTML(m));
-    html+='</div>';
-  });
+  const phases = [
+    {id:'grupos', label:'⚽ Grupos'},
+    {id:'r32',    label:'16avos'},
+    {id:'r16',    label:'Octavos'},
+    {id:'qf',     label:'Cuartos'},
+    {id:'sf',     label:'Semis'},
+    {id:'3ero',   label:'3er Puesto'},
+    {id:'final',  label:'🏆 Final'},
+  ];
 
-  // RONDAS ELIMINATORIAS: agrupar por ronda
-  knockoutRounds.forEach(round => {
-    const ms = ALL_MATCHES.filter(m=>m.round===round);
-    if(!ms.length) return;
-    html+=`<div class="round-header">${ROUND_NAMES[round]}</div>`;
-    html+='<div class="match-grid">';
-    ms.forEach(m=>html+=mHTML(m));
-    html+='</div>';
-  });
+  // Build phase tabs — verde si ya tiene algún pronóstico cargado
+  const tabsEl = document.getElementById('pronoPhaseTabsContainer');
+  if (tabsEl) {
+    tabsEl.innerHTML = phases.map(ph => {
+      const hasProno = ALL_MATCHES.filter(m=>m.round===ph.id).some(m=>myPronosticos[m.id]&&myPronosticos[m.id].home!==undefined&&myPronosticos[m.id].home!=='');
+      const isActive = currentPronoPhase===ph.id;
+      return `<button class="phase-tab-btn${isActive?' active':''}${hasProno&&!isActive?' has-data':''}" onclick="switchPronoPhase('${ph.id}')">${ph.label}</button>`;
+    }).join('');
+  }
+
+  // Render content for current phase
+  let html = '';
+  if (currentPronoPhase === 'grupos') {
+    const sorted = [...ALL_MATCHES.filter(m=>m.round==='grupos')].sort((a,b)=>monthDay(a.date)-monthDay(b.date));
+    const dates = [...new Set(sorted.map(m=>m.date))];
+    dates.forEach(date => {
+      const ms = sorted.filter(m=>m.date===date);
+      html+=`<div class="group-label">📅 ${date}</div><div class="match-grid">`;
+      ms.forEach(m=>html+=mHTML(m));
+      html+='</div>';
+    });
+  } else {
+    const ms = ALL_MATCHES.filter(m=>m.round===currentPronoPhase);
+    if (!ms.length) {
+      html='<div class="no-selection" style="padding:32px 0">⏳ Los cruces de esta ronda se definen cuando terminen las fases anteriores.</div>';
+    } else {
+      html='<div class="match-grid">';
+      ms.forEach(m=>html+=mHTML(m));
+      html+='</div>';
+    }
+  }
 
   document.getElementById('matchesContainer').innerHTML=html;
+}
+
+window.switchPronoPhase = function(phase) {
+  currentPronoPhase = phase;
+  renderMatches();
+  document.getElementById('championPick').value = myPronosticos.champion||'';
 }
 
 function mHTML(m) {
@@ -865,11 +892,21 @@ window.onMatchChange = function(id) {
   const a=document.getElementById('a_'+id)?.value;
   myPronosticos[id]={...myPronosticos[id], home:h, away:a};
   markDirty(); updateProgress();
-  // Re-render this card if it's a knockout match (to show/hide ET fields)
   const m = ALL_MATCHES.find(x=>x.id===id);
   if(m && isKnockoutMatch(m)) {
     const card = document.getElementById('h_'+id)?.closest('.match-card');
     if(card) card.outerHTML = mHTML(m);
+  }
+  // Refresh tab indicators only (not full re-render to avoid losing focus)
+  const tabsEl = document.getElementById('pronoPhaseTabsContainer');
+  if(tabsEl) {
+    const phases = ['grupos','r32','r16','qf','sf','3ero','final'];
+    const phaseLabels = {grupos:'⚽ Grupos',r32:'16avos',r16:'Octavos',qf:'Cuartos',sf:'Semis','3ero':'3er Puesto',final:'🏆 Final'};
+    tabsEl.innerHTML = phases.map(ph => {
+      const hasProno = ALL_MATCHES.filter(m=>m.round===ph).some(m=>myPronosticos[m.id]&&myPronosticos[m.id].home!==undefined&&myPronosticos[m.id].home!=='');
+      const isActive = currentPronoPhase===ph;
+      return `<button class="phase-tab-btn${isActive?' active':''}${hasProno&&!isActive?' has-data':''}" onclick="switchPronoPhase('${ph}')">${phaseLabels[ph]}</button>`;
+    }).join('');
   }
 }
 
