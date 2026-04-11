@@ -121,6 +121,11 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
 .pts-legend span{font-size:.83rem;color:var(--muted2)}
 .pts-legend strong{color:var(--text)}
 .champ-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:8px;padding:4px 10px;font-size:.8rem;color:var(--gold)}
+.et-section{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.et-label{font-size:.72rem;font-weight:600;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px}
+.pen-opt{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--text);cursor:pointer;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:6px 12px}
+.pen-opt input{cursor:pointer;accent-color:var(--gold)}
 .name-search-wrap{position:relative;width:100%}
 .name-search-wrap input{width:100%}
 .name-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--gold);border-radius:10px;overflow:hidden;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;max-height:200px;overflow-y:auto}
@@ -778,29 +783,106 @@ function mHTML(m) {
   const teams = getMatchTeams(m);
   const p=myPronosticos[m.id]||{}, r=results[m.id];
   const locked=r&&r.home!==undefined&&r.home!=='';
+  const isKO = isKnockoutMatch(m);
   const hV=p.home!==undefined?p.home:'', aV=p.away!==undefined?p.away:'';
   const dis=locked?'disabled':'';
-  let fb=`<div class="match-feedback fb-pending">⏳ Sin pronóstico</div>`;
-  if(locked&&hV!==''){
-    const pts=calcPts(m.id,parseInt(hV),parseInt(aV));
-    if(pts===3) fb=`<div class="match-feedback fb-exact">🎯 ¡Exacto! +3 pts</div>`;
-    else if(pts===1) fb=`<div class="match-feedback fb-correct">✅ Correcto +1 pt</div>`;
+
+  // Determine if ET/Pen sections should show
+  const pronoEmpate = hV!=='' && aV!=='' && parseInt(hV)===parseInt(aV);
+  const realEmpate = locked && r && parseInt(r.home)===parseInt(r.away);
+  const showET = isKO && (pronoEmpate || (locked && realEmpate));
+
+  const etHV = p.et_home!==undefined?p.et_home:'', etAV = p.et_away!==undefined?p.et_away:'';
+  const pronoETEmpate = etHV!=='' && etAV!=='' && parseInt(etHV)===parseInt(etAV);
+  const realETEmpate = locked && r && r.et_home!==undefined && r.et_home!=='' && parseInt(r.et_home)===parseInt(r.et_away);
+  const showPen = isKO && showET && (pronoETEmpate || (locked && realETEmpate));
+
+  // Feedback
+  let fb='';
+  if(locked && hV!=='') {
+    const pts = calcPtsFromProno(m.id, p);
+    if(pts===null) fb=`<div class="match-feedback fb-pending">⏳ Sin pronóstico</div>`;
+    else if(pts>=3) fb=`<div class="match-feedback fb-exact">🎯 ¡Exacto 90'! +${pts} pts</div>`;
+    else if(pts>0) fb=`<div class="match-feedback fb-correct">✅ +${pts} pt${pts>1?'s':''}</div>`;
     else fb=`<div class="match-feedback fb-wrong">❌ No acertaste</div>`;
   } else if(hV!==''&&aV!=='') fb=`<div class="match-feedback fb-pending">💾 Guardado</div>`;
+  else fb=`<div class="match-feedback fb-pending">⏳ Sin pronóstico</div>`;
+
+  // ET block
+  let etBlock='', penBlock='';
+  if(showET) {
+    const etDis = (locked && !realEmpate) ? 'disabled' : dis;
+    const realETStr = (locked && r.et_home!==undefined && r.et_home!=='') ? `<div class="real-result" style="font-size:1rem;margin:4px 0">${r.et_home} — ${r.et_away}<small>alargue real</small></div>` : '';
+    etBlock=`
+    <div class="et-section">
+      <div class="et-label">⏱️ Alargue</div>
+      ${realETStr}
+      <div class="score-row">
+        <input type="number" min="0" max="20" value="${etHV}" ${etDis} id="eth_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')">
+        <div class="score-sep">—</div>
+        <input type="number" min="0" max="20" value="${etAV}" ${etDis} id="eta_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')">
+      </div>
+    </div>`;
+
+    if(showPen) {
+      const penDis = (locked && !realETEmpate) ? 'disabled' : dis;
+      const teams2 = getMatchTeams(m);
+      const penV = p.pen_winner||'';
+      const realPenStr = (locked && r.pen_winner) ? `<div style="font-size:.75rem;color:var(--gold);margin-bottom:4px">🥅 Ganó en penales: <strong>${r.pen_winner}</strong></div>` : '';
+      penBlock=`
+      <div class="et-section">
+        <div class="et-label">🥅 Penales — ¿Quién gana?</div>
+        ${realPenStr}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label class="pen-opt"><input type="radio" name="pen_${m.id}" value="${teams2.home}" ${penDis} onchange="onKOChange('${m.id}')" ${penV===teams2.home?'checked':''}> ${teams2.home}</label>
+          <label class="pen-opt"><input type="radio" name="pen_${m.id}" value="${teams2.away}" ${penDis} onchange="onKOChange('${m.id}')" ${penV===teams2.away?'checked':''}> ${teams2.away}</label>
+        </div>
+      </div>`;
+    }
+  }
+
   return `<div class="match-card${locked?' locked':''}">
     <div class="match-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}${m.time?' · '+m.time:''}${locked?' <span class="lock-pill">🔒</span>':''}</span></div>
     <div class="match-teams"><div class="team-name home">${teams.home}</div><div class="match-vs">VS</div><div class="team-name">${teams.away}</div></div>
-    ${locked&&r?`<div class="real-result">${r.home} — ${r.away}<small>resultado real</small></div>`:''}
+    ${locked&&r?`<div class="real-result">${r.home} — ${r.away}<small>resultado 90'</small></div>`:''}
     <div class="score-row">
       <input type="number" min="0" max="20" value="${hV}" ${dis} id="h_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')">
       <div class="score-sep">—</div>
       <input type="number" min="0" max="20" value="${aV}" ${dis} id="a_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')">
-    </div>${fb}</div>`;
+    </div>
+    ${etBlock}${penBlock}${fb}
+  </div>`;
 }
 
 window.onMatchChange = function(id) {
-  myPronosticos[id]={home:document.getElementById('h_'+id)?.value, away:document.getElementById('a_'+id)?.value};
+  const h=document.getElementById('h_'+id)?.value;
+  const a=document.getElementById('a_'+id)?.value;
+  myPronosticos[id]={...myPronosticos[id], home:h, away:a};
   markDirty(); updateProgress();
+  // Re-render this card if it's a knockout match (to show/hide ET fields)
+  const m = ALL_MATCHES.find(x=>x.id===id);
+  if(m && isKnockoutMatch(m)) {
+    const card = document.getElementById('h_'+id)?.closest('.match-card');
+    if(card) card.outerHTML = mHTML(m);
+  }
+}
+
+window.onKOChange = function(id) {
+  const eth = document.getElementById('eth_'+id)?.value;
+  const eta = document.getElementById('eta_'+id)?.value;
+  const penEl = document.querySelector(`input[name="pen_${id}"]:checked`);
+  myPronosticos[id]={...myPronosticos[id],
+    et_home: eth!==undefined?eth:'',
+    et_away: eta!==undefined?eta:'',
+    pen_winner: penEl?penEl.value:''
+  };
+  markDirty();
+  // Re-render to show/hide pen section
+  const m = ALL_MATCHES.find(x=>x.id===id);
+  if(m) {
+    const card = document.getElementById('eth_'+id)?.closest('.match-card');
+    if(card) card.outerHTML = mHTML(m);
+  }
 }
 window.markDirty = function() {
   const el=document.getElementById('saveStatus'); el.textContent='Cambios sin guardar...'; el.className='save-status';
@@ -824,7 +906,21 @@ function updateChampionFeedback() {
 
 window.savePronosticos = async function() {
   if(!currentUser) return;
-  ALL_MATCHES.forEach(m=>{const h=document.getElementById('h_'+m.id)?.value,a=document.getElementById('a_'+m.id)?.value;if(h!==undefined)myPronosticos[m.id]={home:h,away:a};});
+  ALL_MATCHES.forEach(m=>{
+    const h=document.getElementById('h_'+m.id)?.value;
+    const a=document.getElementById('a_'+m.id)?.value;
+    if(h!==undefined) {
+      myPronosticos[m.id]={...myPronosticos[m.id], home:h, away:a};
+      if(isKnockoutMatch(m)) {
+        const eth=document.getElementById('eth_'+m.id)?.value;
+        const eta=document.getElementById('eta_'+m.id)?.value;
+        const pen=document.querySelector(`input[name="pen_${m.id}"]:checked`);
+        if(eth!==undefined) myPronosticos[m.id].et_home=eth;
+        if(eta!==undefined) myPronosticos[m.id].et_away=eta;
+        if(pen) myPronosticos[m.id].pen_winner=pen.value;
+      }
+    }
+  });
   myPronosticos.champion=document.getElementById('championPick').value;
   myPronosticos._savedAt = new Date().toISOString();
   updateChampionFeedback();
@@ -841,12 +937,76 @@ window.savePronosticos = async function() {
 }
 
 function getResult(h,a){return h>a?'H':a>h?'A':'D';}
-function calcPts(mid,ph,pa){
-  const r=results[mid]; if(!r||r.home===undefined||r.home==='') return null;
+function isKnockoutMatch(m){ return KNOCKOUT_ROUNDS.includes(m.round); }
+
+// Calcula puntos totales de un partido (incluye alargue y penales si aplica)
+function calcPts(mid, ph, pa, peh, pea, pph, ppa) {
+  const r=results[mid];
+  if(!r||r.home===undefined||r.home==='') return null;
   if(isNaN(ph)||isNaN(pa)) return null;
-  if(ph===parseInt(r.home)&&pa===parseInt(r.away)) return 3;
-  if(getResult(ph,pa)===getResult(parseInt(r.home),parseInt(r.away))) return 1;
-  return 0;
+  const rh=parseInt(r.home), ra=parseInt(r.away);
+  let pts=0;
+
+  // Puntos por 90 minutos
+  if(ph===rh && pa===ra) pts+=3;
+  else if(getResult(ph,pa)===getResult(rh,ra)) pts+=1;
+  else {
+    // No acertó los 90' — verificar si aun así acertó el ganador final
+    const m = ALL_MATCHES.find(x=>x.id===mid);
+    if(m && isKnockoutMatch(m) && getResult(rh,ra)==='D') {
+      // Hubo empate en 90', puede haber alargue
+      const ret = r.et_home, rea = r.et_away;
+      if(ret!==undefined && ret!=='') {
+        const reth=parseInt(ret), reta=parseInt(rea);
+        // Puntos por alargue
+        if(peh!==undefined && peh!=='') {
+          const peth=parseInt(peh), peta=parseInt(pea);
+          if(peth===reth && peta===reta) pts+=3;
+          else if(getResult(peth,peta)===getResult(reth,reta)) pts+=1;
+        }
+        // Si alargue también empató, puede haber penales
+        if(getResult(reth,reta)==='D') {
+          const rpp=r.pen_winner;
+          if(rpp && pph!==undefined && pph!=='') {
+            if(pph===rpp) pts+=1;
+          }
+        }
+      }
+    }
+    return pts;
+  }
+
+  // Acertó los 90' — si es eliminatoria y hubo empate, calcular alargue/penales también
+  const m = ALL_MATCHES.find(x=>x.id===mid);
+  if(m && isKnockoutMatch(m) && getResult(rh,ra)==='D') {
+    const ret=r.et_home, rea=r.et_away;
+    if(ret!==undefined && ret!=='') {
+      const reth=parseInt(ret), reta=parseInt(rea);
+      if(peh!==undefined && peh!=='') {
+        const peth=parseInt(peh), peta=parseInt(pea);
+        if(peth===reth && peta===reta) pts+=3;
+        else if(getResult(peth,peta)===getResult(reth,reta)) pts+=1;
+      }
+      if(getResult(reth,reta)==='D') {
+        const rpp=r.pen_winner;
+        if(rpp && pph!==undefined && pph!=='') {
+          if(pph===rpp) pts+=1;
+        }
+      }
+    }
+  }
+  return pts;
+}
+
+// Wrapper para calcular puntos desde un objeto pronóstico
+function calcPtsFromProno(mid, prono) {
+  if(!prono || prono.home===undefined || prono.home==='') return null;
+  return calcPts(mid,
+    parseInt(prono.home), parseInt(prono.away),
+    prono.et_home!==undefined?parseInt(prono.et_home):undefined,
+    prono.et_away!==undefined?parseInt(prono.et_away):undefined,
+    prono.pen_winner
+  );
 }
 
 async function renderLeaderboard() {
@@ -858,9 +1018,9 @@ async function renderLeaderboard() {
     snap.forEach(d=>{
       const name=d.id,prono=d.data();
       let exact=0,correct=0,champPts=0;
-      ALL_MATCHES.forEach(m=>{const p=prono[m.id];if(!p||p.home==='')return;const pts=calcPts(m.id,parseInt(p.home),parseInt(p.away));if(pts===3)exact++;else if(pts===1)correct++;});
+      ALL_MATCHES.forEach(m=>{const p=prono[m.id];if(!p||p.home==='')return;const pts=calcPtsFromProno(m.id,p);if(pts===null)return;if(pts>=3)exact+=pts;else if(pts>0)correct+=pts;});
       if(prono.champion&&realChampion&&prono.champion===realChampion)champPts=10;
-      scores.push({name,exact,correct,champPts,total:exact*3+correct+champPts});
+      scores.push({name,exact,correct,champPts,total:exact+correct+champPts});
     });
     scores.sort((a,b)=>b.total-a.total||b.exact-a.exact);
     if(!scores.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">Todavía no hay pronósticos cargados.</td></tr>';return;}
@@ -956,7 +1116,7 @@ function renderAdminResults() {
       const r=results[m.id]||{};
       const cn=matchNames[m.id]||{};
       html+=`<div class="result-item" style="flex-wrap:wrap;gap:8px">
-        <div class="result-label" style="min-width:100%;margin-bottom:4px">
+        <div class="result-label" style="min-width:100%;margin-bottom:6px">
           <small>${m.date}</small>
           <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
             <input type="text" id="nh_${m.id}" value="${cn.home||''}" placeholder="${m.home}" style="flex:1;min-width:120px;font-size:.85rem;padding:7px 10px">
@@ -964,12 +1124,33 @@ function renderAdminResults() {
             <input type="text" id="na_${m.id}" value="${cn.away||''}" placeholder="${m.away}" style="flex:1;min-width:120px;font-size:.85rem;padding:7px 10px">
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-          <span style="font-size:.8rem;color:var(--muted2)">Resultado:</span>
-          <div class="result-inputs">
-            <input type="number" min="0" max="20" id="rh_${m.id}" value="${r.home!==undefined?r.home:''}" placeholder="?">
-            <span style="color:var(--muted);font-weight:700;padding:0 4px">—</span>
-            <input type="number" min="0" max="20" id="ra_${m.id}" value="${r.away!==undefined?r.away:''}" placeholder="?">
+        <div style="width:100%;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+          <div>
+            <div style="font-size:.7rem;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">90 minutos</div>
+            <div class="result-inputs">
+              <input type="number" min="0" max="20" id="rh_${m.id}" value="${r.home!==undefined?r.home:''}" placeholder="?">
+              <span style="color:var(--muted);font-weight:700;padding:0 4px">—</span>
+              <input type="number" min="0" max="20" id="ra_${m.id}" value="${r.away!==undefined?r.away:''}" placeholder="?">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.7rem;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">⏱️ Alargue (si hubo)</div>
+            <div class="result-inputs">
+              <input type="number" min="0" max="20" id="reth_${m.id}" value="${r.et_home!==undefined?r.et_home:''}" placeholder="?">
+              <span style="color:var(--muted);font-weight:700;padding:0 4px">—</span>
+              <input type="number" min="0" max="20" id="reta_${m.id}" value="${r.et_away!==undefined?r.et_away:''}" placeholder="?">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.7rem;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">🥅 Ganador penales</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <label style="display:inline-flex;align-items:center;gap:4px;font-size:.82rem;color:var(--text);cursor:pointer">
+                <input type="radio" name="rpen_${m.id}" value="${cn.home||m.home}" ${r.pen_winner===(cn.home||m.home)?'checked':''}> ${cn.home||m.home||'Local'}
+              </label>
+              <label style="display:inline-flex;align-items:center;gap:4px;font-size:.82rem;color:var(--text);cursor:pointer">
+                <input type="radio" name="rpen_${m.id}" value="${cn.away||m.away}" ${r.pen_winner===(cn.away||m.away)?'checked':''}> ${cn.away||m.away||'Visitante'}
+              </label>
+            </div>
           </div>
         </div>
       </div>`;
@@ -985,7 +1166,16 @@ window.saveResults = async function() {
     const h=document.getElementById('rh_'+m.id)?.value;
     const a=document.getElementById('ra_'+m.id)?.value;
     if(h!==''&&a!==''&&h!==undefined&&a!==undefined){
-      newResults[m.id]={home:parseInt(h),away:parseInt(a)};
+      const res={home:parseInt(h),away:parseInt(a)};
+      if(isKnockoutMatch(m)){
+        const eth=document.getElementById('reth_'+m.id)?.value;
+        const eta=document.getElementById('reta_'+m.id)?.value;
+        const pen=document.querySelector(`input[name="rpen_${m.id}"]:checked`);
+        if(eth!==undefined&&eth!=='') res.et_home=parseInt(eth);
+        if(eta!==undefined&&eta!=='') res.et_away=parseInt(eta);
+        if(pen) res.pen_winner=pen.value;
+      }
+      newResults[m.id]=res;
     }
   });
   results = newResults;
@@ -1040,6 +1230,8 @@ function renderResultados() {
       const r = results[m.id];
       const teams = getMatchTeams(m);
       const groupTag = m.group ? `Grupo ${m.group}` : '';
+      const etStr = r.et_home!==undefined&&r.et_home!=='' ? ` · ET: ${r.et_home}-${r.et_away}` : '';
+      const penStr = r.pen_winner ? ` · Pen: ${r.pen_winner}` : '';
       html += `
       <div class="result-match-card">
         <div class="result-match-date">${m.date}</div>
@@ -1047,7 +1239,10 @@ function renderResultados() {
           ${teams.home} vs ${teams.away}
           <div class="group-tag">${groupTag}${m.time ? (groupTag?' · ':'')+m.time+' hs':''}</div>
         </div>
-        <div class="result-score">${r.home} — ${r.away}</div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="result-score">${r.home} — ${r.away}</div>
+          ${etStr||penStr?`<div style="font-size:.7rem;color:var(--muted2)">${etStr}${penStr}</div>`:''}
+        </div>
       </div>`;
     });
   });
@@ -1095,18 +1290,19 @@ function renderMisPuntos() {
   ALL_MATCHES.forEach(m => {
     const p = prono[m.id]; const r = results[m.id];
     if (!p || !r || r.home===undefined || r.home==='') return;
-    const pts = calcPts(m.id, parseInt(p.home), parseInt(p.away));
-    if (pts===3) exact++;
-    else if (pts===1) correct++;
+    const pts = calcPtsFromProno(m.id, p);
+    if(pts===null) return;
+    if(pts>=3) exact+=pts;
+    else if(pts>0) correct+=pts;
   });
   if (prono.champion && realChampion && prono.champion===realChampion) champPts=10;
-  total = exact*3 + correct + champPts;
+  total = exact + correct + champPts;
 
   // Resumen header
   resumen.innerHTML = `
     <div class="mispuntos-stat"><div class="label">Total</div><div class="value" style="color:var(--gold)">${total} pts</div></div>
-    <div class="mispuntos-stat"><div class="label">🎯 Exactos</div><div class="value" style="color:var(--gold)">${exact}</div></div>
-    <div class="mispuntos-stat"><div class="label">✅ Correctos</div><div class="value" style="color:var(--green)">${correct}</div></div>`;
+    <div class="mispuntos-stat"><div class="label">🎯 Pts exactos</div><div class="value" style="color:var(--gold)">${exact}</div></div>
+    <div class="mispuntos-stat"><div class="label">✅ Pts correctos</div><div class="value" style="color:var(--green)">${correct}</div></div>`;
 
   // Campeón
   let champHTML = '';
@@ -1138,15 +1334,25 @@ function renderMisPuntos() {
       const r = results[m.id];
       const teams = getMatchTeams(m);
       const hasResult = r && r.home!==undefined && r.home!=='';
-      const pts = hasResult ? calcPts(m.id, parseInt(p.home), parseInt(p.away)) : null;
-      const cls = pts===3?'exact':pts===1?'correct':pts===0?'wrong':'pending';
-      const tag = pts===3?'🎯 EXACTO':pts===1?'✅ CORRECTO':pts===0?'❌ FALLADO':'⏳ PENDIENTE';
-      const tagColor = pts===3?'var(--gold)':pts===1?'var(--green)':pts===0?'var(--red)':'var(--muted)';
-      const ptsLabel = pts===3?'+3 pts':pts===1?'+1 pt':pts===0?'0 pts':'—';
+      const pts = hasResult ? calcPtsFromProno(m.id, p) : null;
+      const cls = pts>=3?'exact':pts>0?'correct':pts===0?'wrong':'pending';
+      const tag = pts>=3?'🎯 EXACTO':pts>0?'✅ CORRECTO':pts===0?'❌ FALLADO':'⏳ PENDIENTE';
+      const tagColor = pts>=3?'var(--gold)':pts>0?'var(--green)':pts===0?'var(--red)':'var(--muted)';
+      const ptsLabel = pts!==null?`+${pts} pts`:'—';
+      // Extra detail for ET/pen
+      let extraDetail = '';
+      if(p.et_home!==undefined && p.et_home!=='') extraDetail += ` · Alargue: <span>${p.et_home}-${p.et_away}</span>`;
+      if(p.pen_winner) extraDetail += ` · Penales: <span>${p.pen_winner}</span>`;
+      let realDetail = '';
+      if(hasResult) {
+        realDetail = ` · Real: <span>${r.home}-${r.away}</span>`;
+        if(r.et_home!==undefined&&r.et_home!=='') realDetail += ` <span>(ET: ${r.et_home}-${r.et_away})</span>`;
+        if(r.pen_winner) realDetail += ` <span>(Pen: ${r.pen_winner})</span>`;
+      }
       matchHTML += `<div class="mp-row ${cls}">
         <div class="mp-match">
           <div class="name">${teams.home} vs ${teams.away}</div>
-          <div class="detail">Pronosticaste <span>${p.home}-${p.away}</span>${hasResult?' · Real <span>'+r.home+'-'+r.away+'</span>':' · Aún no jugado'}</div>
+          <div class="detail">Pronosticaste <span>${p.home}-${p.away}</span>${extraDetail}${hasResult?realDetail:' · Aún no jugado'}</div>
         </div>
         <div class="mp-result">
           <div class="tag" style="color:${tagColor}">${tag}</div>
@@ -1214,18 +1420,20 @@ window.loadVerifyData = async function() {
 
     // Matches by round
     let matchHTML = '';
-    ['grupos','r16','qf','sf','final'].forEach(round => {
+    ['grupos','r32','r16','qf','sf','3ero','final'].forEach(round => {
       const ms = ALL_MATCHES.filter(m => m.round === round);
+      const withProno = ms.filter(m => prono[m.id] && prono[m.id].home !== undefined && prono[m.id].home !== '');
+      if (!withProno.length) return;
       matchHTML += `<div class="round-header" style="margin-bottom:10px">${ROUND_NAMES[round]}</div>`;
       if (round === 'grupos') {
-        [...new Set(ms.map(m=>m.group))].forEach(g => {
+        [...new Set(withProno.map(m=>m.group))].forEach(g => {
           matchHTML += `<div class="group-label">Grupo ${g}</div><div class="verify-grid">`;
-          ms.filter(m=>m.group===g).forEach(m => matchHTML += verifyCardHTML(m, prono));
+          withProno.filter(m=>m.group===g).forEach(m => matchHTML += verifyCardHTML(m, prono));
           matchHTML += '</div>';
         });
       } else {
         matchHTML += '<div class="verify-grid">';
-        ms.forEach(m => matchHTML += verifyCardHTML(m, prono));
+        withProno.forEach(m => matchHTML += verifyCardHTML(m, prono));
         matchHTML += '</div>';
       }
     });
@@ -1240,17 +1448,28 @@ function verifyCardHTML(m, prono) {
   const r = results[m.id];
   const hasProno = p && p.home !== undefined && p.home !== '';
   const hasResult = r && r.home !== undefined && r.home !== '';
+  const isKO = isKnockoutMatch(m);
 
   let scoreHTML = hasProno
     ? `<div class="verify-score">${p.home} — ${p.away}</div>`
     : `<div class="verify-score no-prono">Sin pronóstico</div>`;
 
+  // ET and pen extra info for knockout
+  let extraProno = '';
+  if (isKO && hasProno) {
+    if (p.et_home !== undefined && p.et_home !== '')
+      extraProno += `<div class="verify-result" style="font-size:.72rem;color:var(--muted2)">Alargue: ${p.et_home}-${p.et_away}</div>`;
+    if (p.pen_winner)
+      extraProno += `<div class="verify-result" style="font-size:.72rem;color:var(--muted2)">Penales: ${p.pen_winner}</div>`;
+  }
+
   let ptsHTML = '';
   if (hasResult && hasProno) {
-    const pts = calcPts(m.id, parseInt(p.home), parseInt(p.away));
-    if (pts === 3) ptsHTML = `<div class="verify-pts vpts-exact">🎯 Exacto · +3 pts · Real: ${r.home}-${r.away}</div>`;
-    else if (pts === 1) ptsHTML = `<div class="verify-pts vpts-correct">✅ Correcto · +1 pt · Real: ${r.home}-${r.away}</div>`;
-    else ptsHTML = `<div class="verify-pts vpts-wrong">❌ No acertó · Real: ${r.home}-${r.away}</div>`;
+    const pts = calcPtsFromProno(m.id, p);
+    const realStr = `${r.home}-${r.away}${r.et_home!==undefined&&r.et_home!==''?' (ET: '+r.et_home+'-'+r.et_away+')':''}${r.pen_winner?' (Pen: '+r.pen_winner+')':''}`;
+    if (pts >= 3) ptsHTML = `<div class="verify-pts vpts-exact">🎯 +${pts} pts · Real: ${realStr}</div>`;
+    else if (pts > 0) ptsHTML = `<div class="verify-pts vpts-correct">✅ +${pts} pt · Real: ${realStr}</div>`;
+    else ptsHTML = `<div class="verify-pts vpts-wrong">❌ No acertó · Real: ${realStr}</div>`;
   } else if (hasResult) {
     ptsHTML = `<div class="verify-pts vpts-pending">🔒 Sin pronóstico · Real: ${r.home}-${r.away}</div>`;
   } else if (hasProno) {
@@ -1260,7 +1479,7 @@ function verifyCardHTML(m, prono) {
   return `<div class="verify-card">
     <div class="v-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}</span></div>
     <div class="verify-teams">${teams.home} vs ${teams.away}</div>
-    ${scoreHTML}${ptsHTML}
+    ${scoreHTML}${extraProno}${ptsHTML}
   </div>`;
 }
 
