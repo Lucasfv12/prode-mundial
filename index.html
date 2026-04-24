@@ -344,7 +344,11 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
 
     <div class="tab-view" id="tab-admin">
       <div class="card">
-        <div class="card-title">👥 Participantes</div>
+        <div class="card-title">📄 Backup de Pronósticos</div>
+        <p style="font-size:.83rem;color:var(--muted2);margin-bottom:14px">Genera un PDF con todos los pronósticos cargados hasta el momento. Una página por participante con nombre, puntaje, campeón elegido y última modificación.</p>
+        <button class="btn btn-gold" onclick="generateBackupPDF()" id="btnBackup">📄 Generar PDF de respaldo</button>
+        <div id="backupStatus" style="font-size:.82rem;margin-top:10px;color:var(--muted2)"></div>
+      </div>
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <input type="text" id="newName" placeholder="Nombre..." style="flex:1;min-width:150px">
           <input type="text" id="newPin" placeholder="PIN 4 dígitos" maxlength="4" style="width:160px" inputmode="numeric">
@@ -1440,6 +1444,282 @@ function renderMisPuntos() {
   } else {
     lista.innerHTML = champHTML + matchHTML;
   }
+}
+
+window.generateBackupPDF = async function() {
+  const btn = document.getElementById('btnBackup');
+  const status = document.getElementById('backupStatus');
+  btn.disabled = true;
+  status.textContent = '⏳ Cargando pronósticos...';
+
+  try {
+    // Load all pronosticos from Firebase
+    const snap = await getDocs(collection(db, 'pronosticos'));
+    const allProno = {};
+    snap.docs.forEach(d => { allProno[d.id] = d.data(); });
+
+    if (!Object.keys(participants).length) {
+      status.textContent = '⚠️ No hay participantes cargados.';
+      btn.disabled = false;
+      return;
+    }
+
+    // Load jsPDF dynamically
+    status.textContent = '⏳ Generando PDF...';
+    if (!window.jspdf) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, H = 297;
+    const margin = 18;
+    const contentW = W - margin * 2;
+    const sortedNames = Object.keys(participants).sort();
+    const total = sortedNames.length;
+    const now = new Date();
+    const nowStr = now.toLocaleDateString('es-AR') + ' · ' + now.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
+
+    sortedNames.forEach((name, pi) => {
+      if (pi > 0) doc.addPage();
+      const prono = allProno[name] || {};
+
+      // Calculate points
+      let exact=0, correct=0, champPts=0;
+      ALL_MATCHES.forEach(m => {
+        const p = prono[m.id]; const r = results[m.id];
+        if (!p || !r || r.home===undefined || r.home==='') return;
+        const pts = calcPtsFromProno(m.id, p);
+        if (pts===null) return;
+        if (pts>=3) exact+=pts; else if(pts>0) correct+=pts;
+      });
+      if (prono.champion && realChampion && prono.champion===realChampion) champPts=10;
+      const totalPts = exact + correct + champPts;
+
+      // Last modified
+      let lastSaved = '—';
+      if (prono._savedAt) {
+        const d = new Date(prono._savedAt);
+        lastSaved = d.toLocaleDateString('es-AR') + ' · ' + d.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'}) + ' hs';
+      }
+
+      let y = margin;
+
+      // ── HEADER ──
+      doc.setFillColor(8, 12, 20);
+      doc.rect(0, 0, W, 28, 'F');
+      doc.setTextColor(245, 197, 66);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('PRODE MUNDIAL 2026', margin, 12);
+      doc.setTextColor(180, 180, 180);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(`PDF generado el ${nowStr}`, margin, 20);
+      doc.text(`Página ${pi+1} de ${total}`, W - margin, 20, {align:'right'});
+      y = 36;
+
+      // ── NOMBRE ──
+      doc.setTextColor(20, 20, 20);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('PARTICIPANTE', margin, y);
+      y += 5;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.setTextColor(20, 20, 20);
+      doc.text(name, margin, y);
+      y += 3;
+
+      // ── DIVIDER ──
+      doc.setDrawColor(230, 230, 230);
+      doc.setLineWidth(0.3);
+      doc.line(margin, y+2, W-margin, y+2);
+      y += 8;
+
+      // ── STATS BOXES ──
+      const boxW = (contentW - 6) / 4;
+      const boxes = [
+        { label: 'TOTAL', value: `${totalPts} pts`, bg: [245,197,66], fg: [100,65,0] },
+        { label: 'EXACTOS (pts)', value: `${exact}`, bg: [240,253,244], fg: [22,101,52] },
+        { label: 'CORRECTOS (pts)', value: `${correct}`, bg: [240,253,244], fg: [22,101,52] },
+        { label: 'CAMPEON', value: prono.champion || '—', bg: [255,251,235], fg: [146,64,14] },
+      ];
+      boxes.forEach((b, bi) => {
+        const bx = margin + bi * (boxW + 2);
+        doc.setFillColor(...b.bg);
+        doc.roundedRect(bx, y, boxW, 18, 2, 2, 'F');
+        doc.setTextColor(...b.fg);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.text(b.label, bx + boxW/2, y+5, {align:'center'});
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(bi===3?8:13);
+        doc.text(String(b.value), bx + boxW/2, y+14, {align:'center'});
+      });
+      y += 22;
+
+      // ── ULTIMA MODIFICACION ──
+      doc.setFillColor(240, 253, 244);
+      doc.roundedRect(margin, y, contentW, 9, 2, 2, 'F');
+      doc.setTextColor(22, 101, 52);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(`Ultima modificacion: ${lastSaved}`, margin+4, y+6);
+      y += 14;
+
+      // ── TABLE HEADER ──
+      doc.setFillColor(245, 197, 66);
+      doc.rect(margin, y, contentW, 7, 'F');
+      doc.setTextColor(80, 50, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      const cols = {partido: margin+2, grupo: margin+90, prono: margin+112, real: margin+136, pts: margin+160};
+      doc.text('PARTIDO', cols.partido, y+5);
+      doc.text('GRP', cols.grupo, y+5);
+      doc.text('PRONOSTICO', cols.prono, y+5);
+      doc.text('REAL', cols.real, y+5);
+      doc.text('PTS', cols.pts, y+5);
+      y += 7;
+
+      // ── TABLE ROWS ──
+      const allMatchesSorted = [...GROUP_MATCHES].sort((a,b) => {
+        const mon={Jun:6,Jul:7};
+        const [am,ad] = a.date.split(' ');
+        const [bm,bd] = b.date.split(' ');
+        return (mon[am]*100+parseInt(ad)) - (mon[bm]*100+parseInt(bd));
+      }).concat(KNOCKOUT_MATCHES);
+
+      let rowCount = 0;
+      allMatchesSorted.forEach(m => {
+        const p = prono[m.id];
+        if (!p || p.home===undefined || p.home==='') return;
+
+        // Page break if needed
+        if (y > H - 24) {
+          doc.addPage();
+          // Mini header on continuation pages
+          doc.setFillColor(8, 12, 20);
+          doc.rect(0, 0, W, 14, 'F');
+          doc.setTextColor(245, 197, 66);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.text(`${name} (continuación)`, margin, 9);
+          doc.setTextColor(180, 180, 180);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7);
+          doc.text(`Pág ${pi+1} de ${total}`, W-margin, 9, {align:'right'});
+          y = 20;
+          // Re-draw table header
+          doc.setFillColor(245, 197, 66);
+          doc.rect(margin, y, contentW, 7, 'F');
+          doc.setTextColor(80, 50, 0);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(7);
+          doc.text('PARTIDO', cols.partido, y+5);
+          doc.text('GRP', cols.grupo, y+5);
+          doc.text('PRONOSTICO', cols.prono, y+5);
+          doc.text('REAL', cols.real, y+5);
+          doc.text('PTS', cols.pts, y+5);
+          y += 7;
+        }
+
+        const teams = getMatchTeams(m);
+        const r = results[m.id];
+        const hasResult = r && r.home !== undefined && r.home !== '';
+        const pts = hasResult ? calcPtsFromProno(m.id, p) : null;
+        const rowH = 6.5;
+
+        // Row background
+        if (rowCount % 2 === 0) doc.setFillColor(249, 250, 251);
+        else doc.setFillColor(255, 255, 255);
+        doc.rect(margin, y, contentW, rowH, 'F');
+
+        // Left accent color
+        if (pts !== null) {
+          if (pts >= 3) doc.setFillColor(245, 197, 66);
+          else if (pts > 0) doc.setFillColor(34, 197, 94);
+          else doc.setFillColor(239, 68, 68);
+          doc.rect(margin, y, 1.5, rowH, 'F');
+        }
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(30, 30, 30);
+
+        // Match name (truncate if too long)
+        const matchName = `${teams.home} vs ${teams.away}`;
+        const truncated = matchName.length > 32 ? matchName.substring(0, 30) + '...' : matchName;
+        doc.text(truncated, cols.partido+2, y+4.5);
+
+        // Group
+        doc.setTextColor(100, 100, 100);
+        doc.text(m.group || ROUND_NAMES[m.round]?.substring(0,6) || '', cols.grupo, y+4.5);
+
+        // Prono
+        doc.setTextColor(30, 30, 30);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${p.home} - ${p.away}`, cols.prono, y+4.5);
+
+        // Real result
+        doc.setFont('helvetica', 'normal');
+        if (hasResult) {
+          doc.setTextColor(30, 30, 30);
+          doc.text(`${r.home} - ${r.away}`, cols.real, y+4.5);
+        } else {
+          doc.setTextColor(160, 160, 160);
+          doc.text('pendiente', cols.real, y+4.5);
+        }
+
+        // Points
+        if (pts !== null) {
+          if (pts >= 3) doc.setTextColor(150, 100, 0);
+          else if (pts > 0) doc.setTextColor(22, 101, 52);
+          else doc.setTextColor(185, 28, 28);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`+${pts}`, cols.pts, y+4.5);
+        } else {
+          doc.setTextColor(160, 160, 160);
+          doc.setFont('helvetica', 'normal');
+          doc.text('—', cols.pts, y+4.5);
+        }
+
+        // Row border
+        doc.setDrawColor(240, 240, 240);
+        doc.setLineWidth(0.1);
+        doc.line(margin, y+rowH, W-margin, y+rowH);
+
+        y += rowH;
+        rowCount++;
+      });
+
+      // ── FOOTER ──
+      doc.setFillColor(8, 12, 20);
+      doc.rect(0, H-12, W, 12, 'F');
+      doc.setTextColor(150, 150, 150);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.text('Prode Mundial 2026', margin, H-4);
+      doc.text(`Total: ${totalPts} pts | Exactos: ${exact} | Correctos: ${correct} | Campeon: ${prono.champion||'—'}`, W-margin, H-4, {align:'right'});
+    });
+
+    // Save PDF
+    const dateStr = now.toLocaleDateString('es-AR').replace(/\//g,'-');
+    doc.save(`prode-backup-${dateStr}.pdf`);
+    status.textContent = `✅ PDF generado con ${total} participantes`;
+    setTimeout(() => { status.textContent = ''; }, 4000);
+
+  } catch(e) {
+    console.error(e);
+    status.textContent = '❌ Error al generar el PDF. Revisá la consola.';
+  }
+  btn.disabled = false;
 }
 
 window.showToast = function(msg,type='success') {
