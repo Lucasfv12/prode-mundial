@@ -343,39 +343,21 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
     </div>
 
     <div class="tab-view" id="tab-admin">
+
+      <!-- 1. PARTICIPANTES -->
       <div class="card">
-        <div class="card-title">📄 Backup de Pronósticos</div>
-        <p style="font-size:.83rem;color:var(--muted2);margin-bottom:14px">Genera un PDF con todos los pronósticos cargados hasta el momento. Una página por participante con nombre, puntaje, campeón elegido y última modificación.</p>
-        <button class="btn btn-gold" onclick="generateBackupPDF()" id="btnBackup">📄 Generar PDF de respaldo</button>
-        <div id="backupStatus" style="font-size:.82rem;margin-top:10px;color:var(--muted2)"></div>
-      </div>
+        <div class="card-title">👥 Participantes
+          <span id="participantCount" style="font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:400;color:var(--muted2);margin-left:8px"></span>
+        </div>
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <input type="text" id="newName" placeholder="Nombre..." style="flex:1;min-width:150px">
           <input type="text" id="newPin" placeholder="PIN 4 dígitos" maxlength="4" style="width:160px" inputmode="numeric">
           <button class="btn btn-gold" onclick="addParticipant()">+ Agregar</button>
         </div>
         <div id="participantChips"></div>
-        <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <label style="color:var(--muted2);font-size:.85rem">🔑 Nueva contraseña admin:</label>
-          <input type="password" id="adminPassInput" placeholder="Mínimo 4 caracteres" style="width:220px">
-          <button class="btn btn-outline btn-sm" onclick="saveAdminPassword()">Guardar</button>
-        </div>
       </div>
-      <div class="card" style="background:linear-gradient(135deg,rgba(240,192,64,.06) 0%,var(--surface) 100%);border-color:rgba(240,192,64,.2)">
-        <div class="card-title">🏆 Campeón Real del Mundial</div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
-          <select id="realChampion" style="min-width:200px"><option value="">Seleccioná</option></select>
-          <button class="btn btn-gold" onclick="saveRealChampion()">Guardar Campeón</button>
-        </div>
-        <div style="padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <label style="font-size:.85rem;color:var(--muted2)">🔒 Bloqueo manual del campeón:</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem">
-            <input type="checkbox" id="championLockToggle" onchange="toggleChampionLock()" style="width:16px;height:16px;cursor:pointer">
-            Bloquear para todos los participantes ahora
-          </label>
-          <span id="championLockStatus" style="font-size:.8rem;color:var(--muted2)"></span>
-        </div>
-      </div>
+
+      <!-- 2. RESULTADOS -->
       <div class="card">
         <div class="card-title">⚽ Resultados Reales</div>
         <p style="font-size:.83rem;color:var(--muted2);margin-bottom:14px">Cargá el resultado una vez jugado el partido. Los puntos se calculan solos.</p>
@@ -383,6 +365,42 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
         <div id="adminResultsContainer"></div>
         <button class="btn btn-green" onclick="saveResults()" style="margin-top:18px">💾 Guardar Resultados</button>
       </div>
+
+      <!-- 3. CAMPEÓN -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(240,192,64,.06) 0%,var(--surface) 100%);border-color:rgba(240,192,64,.2)">
+        <div class="card-title">🏆 Campeón Real del Mundial</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+          <select id="realChampion" style="min-width:200px"><option value="">Seleccioná</option></select>
+          <button class="btn btn-gold" onclick="saveRealChampion()">Guardar Campeón</button>
+        </div>
+        <div style="padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:.83rem;font-weight:600;color:var(--muted2);margin-bottom:10px">🔒 Bloqueo de elección de campeón</div>
+          <div id="championLockInfo" style="font-size:.83rem;margin-bottom:10px;padding:10px 14px;border-radius:8px;background:var(--surface2);border:1px solid var(--border)"></div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem">
+            <input type="checkbox" id="championLockToggle" onchange="toggleChampionLock()" style="width:16px;height:16px;cursor:pointer">
+            Forzar bloqueo manual ahora (antes de la fecha automática)
+          </label>
+        </div>
+      </div>
+
+      <!-- 4. BACKUP -->
+      <div class="card">
+        <div class="card-title">📄 Backup de Pronósticos</div>
+        <p style="font-size:.83rem;color:var(--muted2);margin-bottom:14px">Genera un PDF con todos los pronósticos cargados hasta el momento. Una página por participante.</p>
+        <button class="btn btn-gold" onclick="generateBackupPDF()" id="btnBackup">📄 Generar PDF de respaldo</button>
+        <div id="backupStatus" style="font-size:.82rem;margin-top:10px;color:var(--muted2)"></div>
+      </div>
+
+      <!-- 5. CONFIGURACIÓN -->
+      <div class="card">
+        <div class="card-title">⚙️ Configuración</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="color:var(--muted2);font-size:.85rem">🔑 Nueva contraseña admin:</label>
+          <input type="password" id="adminPassInput" placeholder="Mínimo 4 caracteres" style="width:220px">
+          <button class="btn btn-outline btn-sm" onclick="saveAdminPassword()">Guardar</button>
+        </div>
+      </div>
+
     </div>
 
     <div class="tab-view" id="tab-verify">
@@ -722,8 +740,7 @@ function enterApp() {
     document.getElementById('realChampion').value = realChampion||'';
     const lockToggle = document.getElementById('championLockToggle');
     if (lockToggle) { lockToggle.checked = championLocked; }
-    const lockStatus = document.getElementById('championLockStatus');
-    if (lockStatus) { lockStatus.textContent = championLocked ? '🔒 Bloqueado manualmente' : ''; lockStatus.style.color = 'var(--red)'; }
+    renderChampionLockInfo();
     showTab('admin', document.getElementById('navAdmin'));
   } else {
     document.getElementById('saveBar').style.display='flex';
@@ -1095,17 +1112,42 @@ window.addParticipant = async function() {
 }
 
 window.removeParticipant = async function(name) {
-  if(!confirm(`¿Eliminar a ${name} y todos sus pronósticos?`)) return;
+  if(!confirm(`⚠️ ATENCIÓN\n\n¿Querés eliminar a "${name}"?\n\nEsto borrará permanentemente todos sus pronósticos cargados y no se puede deshacer.`)) return;
   delete participants[name];
   await saveConfig();
   try{await deleteDoc(doc(db,'pronosticos',name));}catch(e){}
   renderAdminParticipants();populateLoginSelect();
-  showToast(`${name} eliminado`,'success');
+  showToast(`🗑️ ${name} eliminado correctamente`,'success');
+}
+
+function renderChampionLockInfo() {
+  const el = document.getElementById('championLockInfo');
+  if (!el) return;
+  const now = new Date();
+  const autoLocked = now >= CHAMPION_DEADLINE;
+  const toggle = document.getElementById('championLockToggle');
+  if (autoLocked) {
+    el.style.background='rgba(239,68,68,0.08)'; el.style.borderColor='rgba(239,68,68,0.2)';
+    el.innerHTML=`<span style="color:var(--red)">🔒 Bloqueado automáticamente desde el 11 de junio.</span> <span style="color:var(--muted2)">Los participantes ya no pueden cambiar su campeón. El checkbox de abajo no hace falta.</span>`;
+    if(toggle){toggle.disabled=true;toggle.style.opacity='.4';}
+  } else if (championLocked) {
+    el.style.background='rgba(239,68,68,0.08)'; el.style.borderColor='rgba(239,68,68,0.2)';
+    el.innerHTML=`<span style="color:var(--red)">🔒 Bloqueado manualmente por el administrador.</span> <span style="color:var(--muted2)">Destildá el checkbox para volver a habilitarlo.</span>`;
+    if(toggle){toggle.disabled=false;toggle.style.opacity='1';}
+  } else {
+    const days=Math.ceil((CHAMPION_DEADLINE-now)/(1000*60*60*24));
+    el.style.background='rgba(34,197,94,0.06)'; el.style.borderColor='rgba(34,197,94,0.2)';
+    el.innerHTML=`<span style="color:var(--green)">✅ Habilitado.</span> <span style="color:var(--muted2)">Se cierra automáticamente el <strong style="color:var(--text)">10 de junio</strong> (en ${days} día${days!==1?'s':''}). Podés adelantarlo tildando el checkbox.</span>`;
+    if(toggle){toggle.disabled=false;toggle.style.opacity='1';}
+  }
 }
 
 function renderAdminParticipants() {
   const el=document.getElementById('participantChips');
+  const countEl=document.getElementById('participantCount');
   const names=Object.keys(participants).sort();
+  const total=names.length;
+  if(countEl) countEl.textContent=`(${total} participante${total!==1?'s':''})`;
   if(!names.length){el.innerHTML='<span style="color:var(--muted);font-size:.85rem">Sin participantes todavía.</span>';return;}
   el.innerHTML=names.map(n=>`<div class="participant-chip">👤 <strong>${n}</strong> <span style="color:var(--muted2);font-size:.75rem">PIN: ${participants[n].pin}</span><button class="btn-danger" onclick="removeParticipant('${n.replace(/'/g,"\\'")}')">✕</button></div>`).join('');
 }
@@ -1350,9 +1392,7 @@ function updateChampionUI() {
 window.toggleChampionLock = async function() {
   championLocked = document.getElementById('championLockToggle').checked;
   await saveConfig();
-  const status = document.getElementById('championLockStatus');
-  status.textContent = championLocked ? '🔒 Bloqueado manualmente' : '✅ Desbloqueado';
-  status.style.color = championLocked ? 'var(--red)' : 'var(--green)';
+  renderChampionLockInfo();
   showToast(championLocked ? '🔒 Campeón bloqueado para todos' : '✅ Campeón desbloqueado', 'success');
 }
 
