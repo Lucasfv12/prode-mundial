@@ -1280,40 +1280,57 @@ function renderAdminPhaseContent(phase) {
 }
 
 window.saveResults = async function() {
-  const newResults = {};
-  ALL_MATCHES.forEach(m=>{
+  // Partir de los resultados existentes, solo actualizar la fase activa
+  const newResults = {...results};
+
+  // Obtener partidos de la fase activa
+  const activeMatches = currentAdminPhase === 'grupos'
+    ? ALL_MATCHES.filter(m=>m.round==='grupos')
+    : ALL_MATCHES.filter(m=>m.round===currentAdminPhase);
+
+  // Para la fase activa, leer del DOM y actualizar
+  activeMatches.forEach(m=>{
     const h=document.getElementById('rh_'+m.id)?.value;
     const a=document.getElementById('ra_'+m.id)?.value;
-    if(h!==''&&a!==''&&h!==undefined&&a!==undefined){
-      const res={home:parseInt(h),away:parseInt(a)};
-      if(isKnockoutMatch(m)){
-        const eth=document.getElementById('reth_'+m.id)?.value;
-        const eta=document.getElementById('reta_'+m.id)?.value;
-        const pen=document.querySelector(`input[name="rpen_${m.id}"]:checked`);
-        if(eth!==undefined&&eth!=='') res.et_home=parseInt(eth);
-        if(eta!==undefined&&eta!=='') res.et_away=parseInt(eta);
-        if(pen) res.pen_winner=pen.value;
+    if(h!==undefined && a!==undefined) {
+      if(h!=='' && a!=='') {
+        const res={home:parseInt(h),away:parseInt(a)};
+        if(isKnockoutMatch(m)){
+          const eth=document.getElementById('reth_'+m.id)?.value;
+          const eta=document.getElementById('reta_'+m.id)?.value;
+          const pen=document.querySelector(`input[name="rpen_${m.id}"]:checked`);
+          if(eth!==undefined&&eth!=='') res.et_home=parseInt(eth);
+          if(eta!==undefined&&eta!=='') res.et_away=parseInt(eta);
+          if(pen) res.pen_winner=pen.value;
+        }
+        newResults[m.id]=res;
+      } else {
+        // Campo vacío → borrar resultado de esta fase
+        delete newResults[m.id];
       }
-      newResults[m.id]=res;
     }
   });
+
   results = newResults;
-  // Save editable knockout team names
-  const newMatchNames = {};
-  KNOCKOUT_MATCHES.forEach(m=>{
-    const h=document.getElementById('nh_'+m.id)?.value.trim();
-    const a=document.getElementById('na_'+m.id)?.value.trim();
-    if(h||a) newMatchNames[m.id]={home:h||'',away:a||''};
-  });
-  matchNames = newMatchNames;
+
+  // Guardar nombres editables de cruces (solo fase activa knockout)
+  if (currentAdminPhase !== 'grupos') {
+    const activeKO = ALL_MATCHES.filter(m=>m.round===currentAdminPhase);
+    activeKO.forEach(m=>{
+      const h=document.getElementById('nh_'+m.id)?.value?.trim();
+      const a=document.getElementById('na_'+m.id)?.value?.trim();
+      if(h||a) matchNames[m.id]={home:h||'',away:a||''};
+    });
+  }
+
   try{
     await Promise.all([
       setDoc(doc(db,'config','results'),results),
       setDoc(doc(db,'config','matchNames'),matchNames),
     ]);
-    showToast('✅ Resultados y cruces guardados','success');
-    renderMatches(); // refresh participant view too
-  } catch(e){showToast('Error al guardar resultados','error');}
+    showToast('✅ Resultados guardados','success');
+    renderAdminResults(); // re-render to update tab indicators
+  } catch(e){showToast('❌ Error al guardar resultados','error');}
 }
 
 window.saveRealChampion = async function() {
