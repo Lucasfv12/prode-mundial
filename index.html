@@ -712,6 +712,7 @@ function enterApp() {
   if (currentUser.isAdmin) {
     document.getElementById('navAdmin').style.display='';
     document.getElementById('navVerify').style.display='';
+    document.getElementById('navProno').style.display='none';
     document.querySelectorAll('.participant-only').forEach(el=>el.style.display='none');
     renderAdminParticipants(); renderAdminResults(); populateVerifySelect();
     document.getElementById('realChampion').value = realChampion||'';
@@ -742,6 +743,7 @@ window.logout = function() {
   document.getElementById('saveBar').style.display='none';
   document.getElementById('navAdmin').style.display='none';
   document.getElementById('navVerify').style.display='none';
+  document.getElementById('navProno').style.display='';
   showTab('pronosticos', document.getElementById('navProno'));
 }
 
@@ -949,7 +951,11 @@ function updateChampionFeedback() {
 
 window.savePronosticos = async function() {
   if(!currentUser) return;
-  ALL_MATCHES.forEach(m=>{
+  // Solo leer del DOM los partidos de la fase activa (los demás ya están en myPronosticos)
+  const activeMatches = ALL_MATCHES.filter(m =>
+    currentPronoPhase === 'grupos' ? m.round==='grupos' : m.round===currentPronoPhase
+  );
+  activeMatches.forEach(m=>{
     const h=document.getElementById('h_'+m.id)?.value;
     const a=document.getElementById('a_'+m.id)?.value;
     if(h!==undefined) {
