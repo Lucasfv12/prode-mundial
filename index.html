@@ -673,8 +673,13 @@ window.nameKeydown = function(e) {
     if (options[idx]) options[idx].classList.add('highlighted');
   } else if (e.key === 'Enter') {
     e.preventDefault();
-    const sel = dropdown.querySelector('.highlighted') || options[0];
-    if (sel) selectName(sel.dataset.name);
+    const sel = dropdown.querySelector('.highlighted') || dropdown.querySelector('.name-option');
+    if (sel) { selectName(sel.dataset.name); return; }
+    // Si no hay dropdown abierto, intentar login directamente
+    if (!dropdown.classList.contains('open')) {
+      const name = document.getElementById('loginName').value;
+      if (name) document.getElementById('loginPin').focus();
+    }
   } else if (e.key === 'Escape') {
     dropdown.classList.remove('open');
   }
@@ -743,7 +748,7 @@ function enterApp() {
     renderChampionLockInfo();
     showTab('admin', document.getElementById('navAdmin'));
   } else {
-    document.getElementById('saveBar').style.display='flex';
+    document.getElementById('saveBar').style.display='none'; // oculta hasta que haya cambios reales
     document.querySelectorAll('.participant-only').forEach(el=>el.style.display='');
     renderMatches();
     document.getElementById('championPick').value = myPronosticos.champion||'';
@@ -776,7 +781,8 @@ window.showTab = function(name, btn) {
   if(name==='tabla') renderLeaderboard();
   if(name==='resultados') renderResultados();
   if(name==='mispuntos') renderMisPuntos();
-  document.getElementById('saveBar').style.display = (name==='pronosticos'&&currentUser&&!currentUser.isAdmin)?'flex':'none';
+  // La barra de guardar solo se muestra si hay cambios pendientes (markDirty la activa)
+  if(name!=='pronosticos') document.getElementById('saveBar').style.display='none';
 }
 
 let currentPronoPhase = 'grupos';
@@ -956,7 +962,9 @@ window.onKOChange = function(id) {
   }
 }
 window.markDirty = function() {
-  const el=document.getElementById('saveStatus'); el.textContent='Cambios sin guardar...'; el.className='save-status';
+  const el=document.getElementById('saveStatus');
+  el.textContent='Cambios sin guardar...'; el.className='save-status';
+  document.getElementById('saveBar').style.display='flex';
 }
 
 function updateProgress() {
@@ -1004,6 +1012,7 @@ window.savePronosticos = async function() {
   try {
     await setDoc(doc(db,'pronosticos',currentUser.name),myPronosticos);
     st.textContent='✅ Guardado'; st.className='save-status saved';
+    setTimeout(()=>{ document.getElementById('saveBar').style.display='none'; st.textContent=''; }, 2500);
     renderMatches();
     document.getElementById('championPick').value = myPronosticos.champion||'';
     updateChampionFeedback(); updateChampionUI(); updateProgress();
