@@ -1273,6 +1273,9 @@ function renderAdminPhaseContent(phase) {
           <div>
             <div style="font-size:.7rem;color:var(--muted2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">🥅 Ganador penales</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <label style="display:inline-flex;align-items:center;gap:4px;font-size:.82rem;color:var(--muted2);cursor:pointer">
+                <input type="radio" name="rpen_${m.id}" value="" ${!r.pen_winner?'checked':''}> Ninguno
+              </label>
               <label style="display:inline-flex;align-items:center;gap:4px;font-size:.82rem;color:var(--text);cursor:pointer">
                 <input type="radio" name="rpen_${m.id}" value="${cn.home||m.home}" ${r.pen_winner===(cn.home||m.home)?'checked':''}> ${cn.home||m.home||'Local'}
               </label>
@@ -1311,7 +1314,7 @@ window.saveResults = async function() {
           const pen=document.querySelector(`input[name="rpen_${m.id}"]:checked`);
           if(eth!==undefined&&eth!=='') res.et_home=parseInt(eth);
           if(eta!==undefined&&eta!=='') res.et_away=parseInt(eta);
-          if(pen) res.pen_winner=pen.value;
+          if(pen && pen.value!=='') res.pen_winner=pen.value;
         }
         newResults[m.id]=res;
       } else {
