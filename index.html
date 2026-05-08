@@ -1130,9 +1130,14 @@ window.removeParticipant = async function(name) {
   if(!confirm(`⚠️ ATENCIÓN\n\n¿Querés eliminar a "${name}"?\n\nEsto borrará permanentemente todos sus pronósticos cargados y no se puede deshacer.`)) return;
   delete participants[name];
   await saveConfig();
-  try{await deleteDoc(doc(db,'pronosticos',name));}catch(e){}
-  renderAdminParticipants();populateLoginSelect();
-  showToast(`🗑️ ${name} eliminado correctamente`,'success');
+  try {
+    await deleteDoc(doc(db,'pronosticos',name));
+    showToast(`🗑️ ${name} eliminado correctamente`,'success');
+  } catch(e) {
+    // Si falla el borrado de pronósticos, igual continúa — la tabla ya filtra por participantes activos
+    showToast(`🗑️ ${name} eliminado (pronósticos ya no aparecerán en la tabla)`,'success');
+  }
+  renderAdminParticipants(); populateLoginSelect();
 }
 
 function renderChampionLockInfo() {
