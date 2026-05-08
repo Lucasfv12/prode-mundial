@@ -152,7 +152,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
 .vpts-correct{background:rgba(52,211,153,.12);color:var(--green)}
 .vpts-wrong{background:rgba(248,113,113,.12);color:var(--red)}
 .vpts-pending{background:rgba(90,114,144,.1);color:var(--muted2)}
-.timestamp-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.you-badge{font-size:.7rem;background:var(--gold-glow);border:1px solid rgba(245,197,66,.3);color:var(--gold);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .timestamp-badge{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:.82rem;color:var(--muted2)}
 .timestamp-badge strong{color:var(--text)}
 .champ-verify{display:flex;align-items:center;gap:14px;background:var(--surface2);border:1px solid rgba(240,192,64,.2);border-radius:10px;padding:14px;margin-bottom:16px;flex-wrap:wrap}
@@ -1095,16 +1095,22 @@ async function renderLeaderboard() {
     const snap=await getDocs(collection(db,'pronosticos'));
     const scores=[];
     snap.forEach(d=>{
-      const name=d.id,prono=d.data();
+      const name=d.id, prono=d.data();
+      // Solo mostrar participantes activos
+      if(!participants[name]) return;
       let exact=0,correct=0,champPts=0;
       ALL_MATCHES.forEach(m=>{const p=prono[m.id];if(!p||p.home==='')return;const pts=calcPtsFromProno(m.id,p);if(pts===null)return;if(pts>=3)exact+=pts;else if(pts>0)correct+=pts;});
       if(prono.champion&&realChampion&&prono.champion===realChampion)champPts=10;
       scores.push({name,exact,correct,champPts,total:exact+correct+champPts});
     });
+    // También incluir participantes activos que todavía no cargaron nada
+    Object.keys(participants).forEach(name=>{
+      if(!scores.find(s=>s.name===name)) scores.push({name,exact:0,correct:0,champPts:0,total:0});
+    });
     scores.sort((a,b)=>b.total-a.total||b.exact-a.exact);
-    if(!scores.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">Todavía no hay pronósticos cargados.</td></tr>';return;}
+    if(!scores.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">Todavía no hay participantes cargados.</td></tr>';return;}
     const medals=['🥇','🥈','🥉'];
-    tbody.innerHTML=scores.map((s,i)=>`<tr class="rank-${i+1}"><td class="rank-cell">${medals[i]||i+1}</td><td><strong>${s.name}</strong></td><td><span class="pts-pill">${s.total} pts</span></td><td style="color:var(--gold)">${s.exact}</td><td style="color:var(--green)">${s.correct}</td><td>${s.champPts?'✅ +10':'—'}</td></tr>`).join('');
+    tbody.innerHTML=scores.map((s,i)=>`<tr class="rank-${i+1}"><td class="rank-cell">${medals[i]||i+1}</td><td><strong>${s.name}</strong>${s.name===currentUser?.name?'<span class="you-badge">vos</span>':''}</td><td><span class="pts-pill">${s.total} pts</span></td><td style="color:var(--gold)">${s.exact}</td><td style="color:var(--green)">${s.correct}</td><td>${s.champPts?'✅ +10':'—'}</td></tr>`).join('');
   } catch(e){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">Error al cargar datos.</td></tr>';}
 }
 
