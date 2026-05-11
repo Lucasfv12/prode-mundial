@@ -927,11 +927,21 @@ window.onMatchChange = function(id) {
   myPronosticos[id]={...myPronosticos[id], home:h, away:a};
   markDirty(); updateProgress();
   const m = ALL_MATCHES.find(x=>x.id===id);
+  // Para partidos eliminatorios, solo re-renderizar si hay empate (para mostrar/ocultar ET)
+  // y hacerlo después de un pequeño delay para no interrumpir el tipeo
   if(m && isKnockoutMatch(m)) {
-    const card = document.getElementById('h_'+id)?.closest('.match-card');
-    if(card) card.outerHTML = mHTML(m);
+    const hVal = parseInt(h), aVal = parseInt(a);
+    const isEmpate = !isNaN(hVal) && !isNaN(aVal) && hVal === aVal;
+    const wasEmpate = myPronosticos[id]?._wasEmpate || false;
+    if(isEmpate !== wasEmpate) {
+      myPronosticos[id]._wasEmpate = isEmpate;
+      setTimeout(()=>{
+        const card = document.getElementById('h_'+id)?.closest('.match-card');
+        if(card) card.outerHTML = mHTML(m);
+      }, 300);
+    }
   }
-  // Refresh tab indicators only (not full re-render to avoid losing focus)
+  // Refresh tab indicators
   const tabsEl = document.getElementById('pronoPhaseTabsContainer');
   if(tabsEl) {
     const phases = ['grupos','r32','r16','qf','sf','3ero','final'];
@@ -993,14 +1003,19 @@ window.savePronosticos = async function() {
     const h=document.getElementById('h_'+m.id)?.value;
     const a=document.getElementById('a_'+m.id)?.value;
     if(h!==undefined) {
-      myPronosticos[m.id]={...myPronosticos[m.id], home:h, away:a};
-      if(isKnockoutMatch(m)) {
-        const eth=document.getElementById('eth_'+m.id)?.value;
-        const eta=document.getElementById('eta_'+m.id)?.value;
-        const pen=document.querySelector(`input[name="pen_${m.id}"]:checked`);
-        if(eth!==undefined) myPronosticos[m.id].et_home=eth;
-        if(eta!==undefined) myPronosticos[m.id].et_away=eta;
-        if(pen) myPronosticos[m.id].pen_winner=pen.value;
+      // Si ambos campos están vacíos, borrar el pronóstico de ese partido
+      if(h===''&&a==='') {
+        delete myPronosticos[m.id];
+      } else {
+        myPronosticos[m.id]={...myPronosticos[m.id], home:h, away:a};
+        if(isKnockoutMatch(m)) {
+          const eth=document.getElementById('eth_'+m.id)?.value;
+          const eta=document.getElementById('eta_'+m.id)?.value;
+          const pen=document.querySelector(`input[name="pen_${m.id}"]:checked`);
+          if(eth!==undefined) myPronosticos[m.id].et_home=eth;
+          if(eta!==undefined) myPronosticos[m.id].et_away=eta;
+          if(pen) myPronosticos[m.id].pen_winner=pen.value;
+        }
       }
     }
   });
