@@ -232,7 +232,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
       <h1>PRODE MUNDIAL</h1>
       <p>FIFA World Cup 2026</p>
     </div>
-    <div class="login-tabs">
+    <div class="login-tabs" id="loginTabs" style="display:none">
       <button class="login-tab active" onclick="switchLoginTab('participant')">Participante</button>
       <button class="login-tab" onclick="switchLoginTab('admin')">Administrador</button>
     </div>
@@ -603,6 +603,12 @@ async function init() {
   } catch(e) { showToast('Error al conectar con Firebase','error'); }
   populateLoginSelect();
   populateTeamSelects();
+
+  // Mostrar acceso admin solo si la URL tiene ?admin
+  if (window.location.search.includes('admin')) {
+    document.getElementById('loginTabs').style.display = 'flex';
+    switchLoginTab('admin');
+  }
 
   // Restaurar sesión si existe
   const savedSession = localStorage.getItem('prode_session');
