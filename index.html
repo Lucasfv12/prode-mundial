@@ -818,7 +818,7 @@ function renderMatches() {
   // Render content for current phase
   let html = '';
   if (currentPronoPhase === 'grupos') {
-    const sorted = [...ALL_MATCHES.filter(m=>m.round==='grupos')].sort((a,b)=>monthDay(a.date)-monthDay(b.date));
+    const sorted = [...ALL_MATCHES.filter(m=>m.round==='grupos')].sort((a,b)=>monthDay(a.date)-monthDay(b.date)||(a.time||'').localeCompare(b.time||''));
     const dates = [...new Set(sorted.map(m=>m.date))];
     dates.forEach(date => {
       const ms = sorted.filter(m=>m.date===date);
