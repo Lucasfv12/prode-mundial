@@ -572,35 +572,6 @@ const KNOCKOUT_MATCHES = [
   {id:"final_1",round:"final",home:"G1 Semi-1",away:"G1 Semi-2",date:"Jul 26"},
 ];
 
-const FLAGS = {
-  'Argentina':'🇦🇷','Alemania':'🇩🇪','Arabia Saudí':'🇸🇦','Australia':'🇦🇺',
-  'Austria':'🇦🇹','Bélgica':'🇧🇪','Bosnia y Herz.':'🇧🇦','Brasil':'🇧🇷',
-  'Canadá':'🇨🇦','Cabo Verde':'🇨🇻','Catar':'🇶🇦','Chequia':'🇨🇿',
-  'Colombia':'🇨🇴','Corea del Sur':'🇰🇷','Costa de Marfil':'🇨🇮','Croacia':'🇭🇷',
-  'Curazao':'🇨🇼','Ecuador':'🇪🇨','Egipto':'🇪🇬','Escocia':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'España':'🇪🇸','Estados Unidos':'🇺🇸','Francia':'🇫🇷','Ghana':'🇬🇭',
-  'Haití':'🇭🇹','Inglaterra':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Irán':'🇮🇷','Irak':'🇮🇶',
-  'Japón':'🇯🇵','Jordania':'🇯🇴','Marruecos':'🇲🇦','México':'🇲🇽',
-  'Noruega':'🇳🇴','Nueva Zelanda':'🇳🇿','Países Bajos':'🇳🇱','Panamá':'🇵🇦',
-  'Paraguay':'🇵🇾','Portugal':'🇵🇹','RD Congo':'🇨🇩','Senegal':'🇸🇳',
-  'Sudáfrica':'🇿🇦','Suecia':'🇸🇪','Suiza':'🇨🇭','Túnez':'🇹🇳',
-  'Turquía':'🇹🇷','Uruguay':'🇺🇾','Uzbekistán':'🇺🇿',
-};
-
-function flag(name) {
-  if(!name) return '';
-  // Buscar coincidencia exacta o parcial
-  if(FLAGS[name]) return FLAGS[name];
-  for(const key of Object.keys(FLAGS)) {
-    if(name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(name.toLowerCase())) return FLAGS[key];
-  }
-  return '';
-}
-
-function withFlag(name) {
-  const f = flag(name);
-  return f ? `${f} ${name}` : name;
-}
 const ROUND_NAMES = {grupos:"Fase de Grupos",r32:"16avos de Final",r16:"Octavos de Final",qf:"Cuartos de Final",sf:"Semifinales","3ero":"Tercer Puesto 🥉",final:"Final 🏆"};
 const KNOCKOUT_ROUNDS = ['r32','r16','qf','sf','3ero','final'];
 
@@ -732,7 +703,7 @@ function populateTeamSelects() {
     const el = document.getElementById(id); if(!el) return;
     const cur = el.value;
     el.innerHTML = '<option value="">Elegir campeón</option>';
-    TEAMS.forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=`${flag(t)} ${t}`.trim(); el.appendChild(o); });
+    TEAMS.forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=t; el.appendChild(o); });
     if (cur) el.value = cur;
   });
 }
@@ -945,7 +916,7 @@ function mHTML(m) {
 
   return `<div class="match-card${locked?' locked':''}">
     <div class="match-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}${m.time?' · '+m.time:''}${locked?' <span class="lock-pill">🔒</span>':''}</span></div>
-    <div class="match-teams"><div class="team-name home">${withFlag(teams.home)}</div><div class="match-vs">VS</div><div class="team-name">${withFlag(teams.away)}</div></div>
+    <div class="match-teams"><div class="team-name home">${teams.home}</div><div class="match-vs">VS</div><div class="team-name">${teams.away}</div></div>
     ${locked&&r?`<div class="real-result">${r.home} — ${r.away}<small>resultado 90'</small></div>`:''}
     <div class="score-row">
       <input type="number" min="0" max="20" value="${hV}" ${dis} id="h_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" autocomplete="off" inputmode="numeric">
@@ -1514,7 +1485,7 @@ function renderResultados() {
       <div class="result-match-card">
         <div class="result-match-date">${m.date}</div>
         <div class="result-match-teams">
-          ${withFlag(teams.home)} vs ${withFlag(teams.away)}
+          ${teams.home} vs ${teams.away}
           <div class="group-tag">${groupTag}${m.time ? (groupTag?' · ':'')+m.time+' hs':''}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
@@ -1627,7 +1598,7 @@ function renderMisPuntos() {
       }
       matchHTML += `<div class="mp-row ${cls}">
         <div class="mp-match">
-          <div class="name">${withFlag(teams.home)} vs ${withFlag(teams.away)}</div>
+          <div class="name">${teams.home} vs ${teams.away}</div>
           <div class="detail">Pronosticaste <span>${p.home}-${p.away}</span>${extraDetail}${hasResult?realDetail:' · Aún no jugado'}</div>
         </div>
         <div class="mp-result">
@@ -2030,7 +2001,7 @@ function verifyCardHTML(m, prono) {
 
   return `<div class="verify-card">
     <div class="v-meta"><span>${m.group?'Grupo '+m.group:ROUND_NAMES[m.round]}</span><span>${m.date}</span></div>
-    <div class="verify-teams">${withFlag(teams.home)} vs ${withFlag(teams.away)}</div>
+    <div class="verify-teams">${teams.home} vs ${teams.away}</div>
     ${scoreHTML}${extraProno}${ptsHTML}
   </div>`;
 }
