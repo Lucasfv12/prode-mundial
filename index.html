@@ -891,9 +891,9 @@ function mHTML(m) {
       <div style="font-size:.72rem;color:var(--muted2);margin-bottom:6px">Poné el marcador total al terminar el alargue (ej: si en 90' fue 1-1 y en alargue no entra ningún gol, escribís 1-1)</div>
       ${realETStr}
       <div class="score-row">
-        <input type="number" min="0" max="20" value="${etHV}" ${etDis} id="eth_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" onfocus="this.select()" autocomplete="off" inputmode="numeric">
+        <input type="number" min="0" max="20" value="${etHV}" ${etDis} id="eth_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" autocomplete="off" inputmode="numeric">
         <div class="score-sep">—</div>
-        <input type="number" min="0" max="20" value="${etAV}" ${etDis} id="eta_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" onfocus="this.select()" autocomplete="off" inputmode="numeric">
+        <input type="number" min="0" max="20" value="${etAV}" ${etDis} id="eta_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" autocomplete="off" inputmode="numeric">
       </div>
     </div>`;
 
@@ -919,9 +919,9 @@ function mHTML(m) {
     <div class="match-teams"><div class="team-name home">${teams.home}</div><div class="match-vs">VS</div><div class="team-name">${teams.away}</div></div>
     ${locked&&r?`<div class="real-result">${r.home} — ${r.away}<small>resultado 90'</small></div>`:''}
     <div class="score-row">
-      <input type="number" min="0" max="20" value="${hV}" ${dis} id="h_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" onfocus="this.select()" autocomplete="off" inputmode="numeric">
+      <input type="number" min="0" max="20" value="${hV}" ${dis} id="h_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" autocomplete="off" inputmode="numeric">
       <div class="score-sep">—</div>
-      <input type="number" min="0" max="20" value="${aV}" ${dis} id="a_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" onfocus="this.select()" autocomplete="off" inputmode="numeric">
+      <input type="number" min="0" max="20" value="${aV}" ${dis} id="a_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" autocomplete="off" inputmode="numeric">
     </div>
     ${etBlock}${penBlock}${fb}
   </div>`;
