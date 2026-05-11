@@ -1205,6 +1205,16 @@ window.addParticipant = async function() {
   showToast(`✅ ${name} agregado — PIN: ${pin}`,'success');
 }
 
+window.resetPronosticos = async function(name) {
+  if(!confirm(`⚠️ ATENCIÓN\n\n¿Querés borrar TODOS los pronósticos de "${name}"?\n\nSu nombre y PIN se mantienen, pero todos sus pronósticos quedarán en blanco. Esta acción no se puede deshacer.`)) return;
+  try {
+    await deleteDoc(doc(db,'pronosticos',name));
+    showToast(`🗑️ Pronósticos de ${name} borrados correctamente`,'success');
+  } catch(e) {
+    showToast(`❌ Error al borrar pronósticos de ${name}`,'error');
+  }
+}
+
 window.removeParticipant = async function(name) {
   if(!confirm(`⚠️ ATENCIÓN\n\n¿Querés eliminar a "${name}"?\n\nEsto borrará permanentemente todos sus pronósticos cargados y no se puede deshacer.`)) return;
   delete participants[name];
@@ -1248,7 +1258,7 @@ function renderAdminParticipants() {
   const total=names.length;
   if(countEl) countEl.textContent=`(${total} participante${total!==1?'s':''})`;
   if(!names.length){el.innerHTML='<span style="color:var(--muted);font-size:.85rem">Sin participantes todavía.</span>';return;}
-  el.innerHTML=names.map(n=>`<div class="participant-chip">👤 <strong>${n}</strong> <span style="color:var(--muted2);font-size:.75rem">PIN: ${participants[n].pin}</span><button class="btn-danger" onclick="removeParticipant('${n.replace(/'/g,"\\'")}')">✕</button></div>`).join('');
+  el.innerHTML=names.map(n=>`<div class="participant-chip">👤 <strong>${n}</strong> <span style="color:var(--muted2);font-size:.75rem">PIN: ${participants[n].pin}</span><button class="btn-danger" style="font-size:.72rem;padding:4px 8px" onclick="resetPronosticos('${n.replace(/'/g,"\\'")}')">🗑️ Borrar pronósticos</button><button class="btn-danger" onclick="removeParticipant('${n.replace(/'/g,"\\'")}')">✕</button></div>`).join('');
 }
 
 window.saveAdminPassword = async function() {
