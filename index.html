@@ -290,7 +290,8 @@ input[type=text]:focus,input[type=password]:focus{border-color:var(--gold)}
         <div class="card-title">🏆 Campeón del Mundial — <span style="font-family:'Outfit';font-size:.85rem;color:var(--gold2);font-weight:500">+10 puntos</span></div>
         <div class="champion-inner">
           <label>¿Quién va a ganar?</label>
-          <select id="championPick" onchange="onChampionChange()" style="min-width:200px"><option value="">Elegir campeón</option></select>
+          <select id="championPick" onchange="updateChampionFeedback()" style="min-width:200px"><option value="">Elegir campeón</option></select>
+          <button class="btn btn-gold btn-sm" onclick="onChampionChange()" style="margin-top:10px;width:100%">💾 Guardar campeón</button>
           <div id="championFeedback"></div>
         </div>
         <div id="championDeadline" style="margin-top:12px;font-size:.82rem"></div>
@@ -1020,18 +1021,22 @@ window.autoSave = async function(matchId) {
 }
 
 window.onChampionChange = async function() {
-  updateChampionFeedback();
+  if(!currentUser || currentUser.isAdmin) return;
   myPronosticos.champion = document.getElementById('championPick').value;
+  if(!myPronosticos.champion) { showToast('Elegí un campeón antes de guardar','error'); return; }
   myPronosticos._savedAt = new Date().toISOString();
+  updateChampionFeedback();
   const st=document.getElementById('saveStatus');
   document.getElementById('saveBar').style.display='flex';
-  st.textContent='💾 Guardando...'; st.style.color='var(--muted2)';
+  st.textContent='💾 Guardando campeón...'; st.style.color='var(--muted2)';
   try {
     await setDoc(doc(db,'pronosticos',currentUser.name), myPronosticos);
     st.textContent='✅ Campeón guardado'; st.style.color='var(--green)';
-    setTimeout(()=>{ document.getElementById('saveBar').style.display='none'; }, 2000);
+    showToast('🏆 Campeón guardado correctamente','success');
+    setTimeout(()=>{ document.getElementById('saveBar').style.display='none'; }, 2500);
   } catch(e) {
     st.textContent='❌ Error al guardar'; st.style.color='var(--red)';
+    showToast('Error al guardar. Revisá tu conexión.','error');
   }
 }
 
