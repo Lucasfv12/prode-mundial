@@ -890,9 +890,9 @@ function mHTML(m) {
       <div style="font-size:.72rem;color:var(--muted2);margin-bottom:6px">Poné el marcador total al terminar el alargue (ej: si en 90' fue 1-1 y en alargue no entra ningún gol, escribís 1-1)</div>
       ${realETStr}
       <div class="score-row">
-        <input type="number" min="0" max="20" value="${etHV}" ${etDis} id="eth_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" onblur="autoSave('${m.id}')" autocomplete="off" inputmode="numeric">
+        <input type="number" min="0" max="20" value="${etHV}" ${etDis} id="eth_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" autocomplete="off" inputmode="numeric">
         <div class="score-sep">—</div>
-        <input type="number" min="0" max="20" value="${etAV}" ${etDis} id="eta_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" onblur="autoSave('${m.id}')" autocomplete="off" inputmode="numeric">
+        <input type="number" min="0" max="20" value="${etAV}" ${etDis} id="eta_${m.id}" placeholder="?" onchange="onKOChange('${m.id}')" autocomplete="off" inputmode="numeric">
       </div>
     </div>`;
 
@@ -918,9 +918,9 @@ function mHTML(m) {
     <div class="match-teams"><div class="team-name home">${teams.home}</div><div class="match-vs">VS</div><div class="team-name">${teams.away}</div></div>
     ${locked&&r?`<div class="real-result">${r.home} — ${r.away}<small>resultado 90'</small></div>`:''}
     <div class="score-row">
-      <input type="number" min="0" max="20" value="${hV}" ${dis} id="h_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" onblur="autoSave('${m.id}')" autocomplete="off" inputmode="numeric">
+      <input type="number" min="0" max="20" value="${hV}" ${dis} id="h_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" autocomplete="off" inputmode="numeric">
       <div class="score-sep">—</div>
-      <input type="number" min="0" max="20" value="${aV}" ${dis} id="a_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" onblur="autoSave('${m.id}')" autocomplete="off" inputmode="numeric">
+      <input type="number" min="0" max="20" value="${aV}" ${dis} id="a_${m.id}" placeholder="?" onchange="onMatchChange('${m.id}')" autocomplete="off" inputmode="numeric">
     </div>
     ${etBlock}${penBlock}${fb}
   </div>`;
@@ -930,33 +930,32 @@ window.onMatchChange = function(id) {
   const h=document.getElementById('h_'+id)?.value;
   const a=document.getElementById('a_'+id)?.value;
   myPronosticos[id]={...myPronosticos[id], home:h, away:a};
-  markDirty(); updateProgress();
+  updateProgress();
   const m = ALL_MATCHES.find(x=>x.id===id);
-  // Para partidos eliminatorios, solo re-renderizar si hay empate (para mostrar/ocultar ET)
-  // y hacerlo después de un pequeño delay para no interrumpir el tipeo
   if(m && isKnockoutMatch(m)) {
-    const hVal = parseInt(h), aVal = parseInt(a);
-    const isEmpate = !isNaN(hVal) && !isNaN(aVal) && hVal === aVal;
-    const wasEmpate = myPronosticos[id]?._wasEmpate || false;
-    if(isEmpate !== wasEmpate) {
-      myPronosticos[id]._wasEmpate = isEmpate;
+    const hVal=parseInt(h), aVal=parseInt(a);
+    const isEmpate = !isNaN(hVal)&&!isNaN(aVal)&&hVal===aVal;
+    const wasEmpate = myPronosticos[id]?._wasEmpate||false;
+    if(isEmpate!==wasEmpate){
+      myPronosticos[id]._wasEmpate=isEmpate;
       setTimeout(()=>{
-        const card = document.getElementById('h_'+id)?.closest('.match-card');
-        if(card) card.outerHTML = mHTML(m);
-      }, 300);
+        const card=document.getElementById('h_'+id)?.closest('.match-card');
+        if(card) card.outerHTML=mHTML(m);
+      },300);
     }
   }
   // Refresh tab indicators
-  const tabsEl = document.getElementById('pronoPhaseTabsContainer');
-  if(tabsEl) {
-    const phases = ['grupos','r32','r16','qf','sf','3ero','final'];
-    const phaseLabels = {grupos:'⚽ Grupos',r32:'16avos',r16:'Octavos',qf:'Cuartos',sf:'Semis','3ero':'3er Puesto',final:'🏆 Final'};
-    tabsEl.innerHTML = phases.map(ph => {
-      const hasProno = ALL_MATCHES.filter(m=>m.round===ph).some(m=>myPronosticos[m.id]&&myPronosticos[m.id].home!==undefined&&myPronosticos[m.id].home!=='');
-      const isActive = currentPronoPhase===ph;
+  const tabsEl=document.getElementById('pronoPhaseTabsContainer');
+  if(tabsEl){
+    const phases=['grupos','r32','r16','qf','sf','3ero','final'];
+    const phaseLabels={grupos:'⚽ Grupos',r32:'16avos',r16:'Octavos',qf:'Cuartos',sf:'Semis','3ero':'3er Puesto',final:'🏆 Final'};
+    tabsEl.innerHTML=phases.map(ph=>{
+      const hasProno=ALL_MATCHES.filter(m=>m.round===ph).some(m=>myPronosticos[m.id]&&myPronosticos[m.id].home!==undefined&&myPronosticos[m.id].home!=='');
+      const isActive=currentPronoPhase===ph;
       return `<button class="phase-tab-btn${isActive?' active':''}${hasProno&&!isActive?' has-data':''}" onclick="switchPronoPhase('${ph}')">${phaseLabels[ph]}</button>`;
     }).join('');
   }
+  autoSave(id);
 }
 
 window.onKOChange = function(id) {
@@ -984,7 +983,6 @@ window.markDirty = function() {
 let _saveTimeout = null;
 window.autoSave = async function(matchId) {
   if(!currentUser || currentUser.isAdmin) return;
-  // Recolectar el partido actual del DOM
   const m = ALL_MATCHES.find(x=>x.id===matchId);
   if(!m) return;
   const h=document.getElementById('h_'+matchId)?.value;
@@ -1003,7 +1001,7 @@ window.autoSave = async function(matchId) {
     }
   }
   myPronosticos._savedAt = new Date().toISOString();
-  // Debounce — espera 800ms para no guardar en cada tecla
+  // Debounce de 4 segundos — el usuario escribe tranquilo
   clearTimeout(_saveTimeout);
   _saveTimeout = setTimeout(async () => {
     const st=document.getElementById('saveStatus');
@@ -1012,15 +1010,13 @@ window.autoSave = async function(matchId) {
     try {
       await setDoc(doc(db,'pronosticos',currentUser.name), myPronosticos);
       st.textContent='✅ Guardado'; st.style.color='var(--green)';
-      updateProgress(); renderMatches();
-      document.getElementById('championPick').value = myPronosticos.champion||'';
-      updateChampionFeedback(); updateChampionUI();
-      setTimeout(()=>{ document.getElementById('saveBar').style.display='none'; }, 2000);
+      updateProgress();
+      setTimeout(()=>{ document.getElementById('saveBar').style.display='none'; }, 2500);
     } catch(e) {
       st.textContent='❌ Error al guardar'; st.style.color='var(--red)';
       showToast('Error al guardar. Revisá tu conexión.','error');
     }
-  }, 800);
+  }, 4000);
 }
 
 window.onChampionChange = async function() {
