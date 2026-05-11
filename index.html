@@ -1208,10 +1208,11 @@ window.addParticipant = async function() {
 window.resetPronosticos = async function(name) {
   if(!confirm(`⚠️ ATENCIÓN\n\n¿Querés borrar TODOS los pronósticos de "${name}"?\n\nSu nombre y PIN se mantienen, pero todos sus pronósticos quedarán en blanco. Esta acción no se puede deshacer.`)) return;
   try {
-    await deleteDoc(doc(db,'pronosticos',name));
-    showToast(`🗑️ Pronósticos de ${name} borrados correctamente`,'success');
+    await setDoc(doc(db,'pronosticos',name), {});
+    showToast(`✅ Pronósticos de ${name} borrados correctamente`,'success');
   } catch(e) {
-    showToast(`❌ Error al borrar pronósticos de ${name}`,'error');
+    console.error(e);
+    showToast(`❌ Error: ${e.message}`,'error');
   }
 }
 
