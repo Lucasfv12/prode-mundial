@@ -1861,13 +1861,19 @@ window.generateBackupPDF = async function() {
         // Prono
         doc.setTextColor(30, 30, 30);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${p.home} - ${p.away}`, cols.prono, y+4.5);
+        let pronoTxt = `${p.home} - ${p.away}`;
+        if(p.et_home!==undefined && p.et_home!=='') pronoTxt += ` (ET:${p.et_home}-${p.et_away})`;
+        if(p.pen_winner) pronoTxt += ` P:${p.pen_winner.split(' ')[0]}`;
+        doc.text(pronoTxt, cols.prono, y+4.5);
 
         // Real result
         doc.setFont('helvetica', 'normal');
         if (hasResult) {
           doc.setTextColor(30, 30, 30);
-          doc.text(`${r.home} - ${r.away}`, cols.real, y+4.5);
+          let realTxt = `${r.home} - ${r.away}`;
+          if(r.et_home!==undefined && r.et_home!=='') realTxt += ` (ET:${r.et_home}-${r.et_away})`;
+          if(r.pen_winner) realTxt += ` P:${r.pen_winner.split(' ')[0]}`;
+          doc.text(realTxt, cols.real, y+4.5);
         } else {
           doc.setTextColor(160, 160, 160);
           doc.text('pendiente', cols.real, y+4.5);
