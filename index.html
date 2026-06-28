@@ -976,12 +976,21 @@ window.onKOChange = function(id) {
     pen_winner: penEl?penEl.value:''
   };
   markDirty();
-  // Re-render to show/hide pen section
+  // Solo re-renderizar si cambia si hay que mostrar/ocultar penales
   const m = ALL_MATCHES.find(x=>x.id===id);
   if(m) {
-    const card = document.getElementById('eth_'+id)?.closest('.match-card');
-    if(card) card.outerHTML = mHTML(m);
+    const etH = parseInt(eth), etA = parseInt(eta);
+    const isETEmpate = !isNaN(etH) && !isNaN(etA) && etH === etA;
+    const wasETEmpate = myPronosticos[id]?._wasETEmpate || false;
+    if(isETEmpate !== wasETEmpate) {
+      myPronosticos[id]._wasETEmpate = isETEmpate;
+      setTimeout(() => {
+        const card = document.getElementById('eth_'+id)?.closest('.match-card');
+        if(card) card.outerHTML = mHTML(m);
+      }, 300);
+    }
   }
+  autoSave(id);
 }
 window.markDirty = function() {
   // Con guardado automático, markDirty solo actualiza el progreso
